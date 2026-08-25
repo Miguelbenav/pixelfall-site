@@ -639,6 +639,8 @@
       align-items: center;
       justify-content: center;
       padding: 24px;
+      overflow-y: auto;                 /* tall letter scrolls the overlay */
+      -webkit-overflow-scrolling: touch;
     }
 
     #letter-overlay.show {
@@ -646,9 +648,9 @@
     }
 
     #letter {
+      width: 100%;
       max-width: 640px;
-      max-height: 86vh;
-      overflow-y: auto;
+      margin: auto;                     /* centers, and scrolls sanely when taller than screen */
       border: 14px solid transparent;
       border-image: url('assets/kenney/panel_parchment.png') 10 fill round;
       image-rendering: pixelated;
@@ -729,13 +731,37 @@
         padding: 6px 10px;
       }
 
+      #letter-overlay {
+        padding: 10px;
+        align-items: flex-start;
+      }
+
       #letter {
-        padding: 18px 14px;
-        max-height: 88vh;
+        border-width: 10px;
+        padding: 16px 13px;
+      }
+
+      #letter h2 {
+        font-size: 16px;
+        margin-bottom: 12px;
       }
 
       #letter p {
-        font-size: 13.5px;
+        font-size: 13px;
+        line-height: 1.62;
+        margin-bottom: 11px;
+      }
+
+      #letter .sig {
+        font-size: 14px;
+      }
+
+      #letter .btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 12px 10px;
+        font-size: 14px;
       }
 
       #bench {
@@ -781,13 +807,15 @@
         turned, slowly but surely, into a fully fledged game. I've been a lover and a fan
         of the crafting-survival genre since I was a little kid, and as some of you have
         already noticed, <em>pixelfall.net</em> is my — very possibly cringy — path of
-        admiration for the genre that raised me.</p>
+        admiration for one of the genres that raised me.</p>
       <p>A word on why the game lives <em>here</em> first. PIXELFALL is headed to Steam — but
         Steam's review timelines have been a slow kind of torture for a solo dev trying to
-        ship. So instead of waiting politely, I built my own corner of the internet and made
-        it the showcase a store page could never be: the title you can destroy with your
-        cursor, the actual DAW the soundtrack was written in (open it, remix it, keep your
-        mix), a bestiary that refuses to spoil its best secrets. This site IS a peek into the
+        ship. So instead of waiting politely, I built my own corner of the internet and had some good old
+        nerd fun with it. It’s the title you can destroy with your
+        cursor, the actual DAW i built, and the main theme of the soundtrack i created for the game (open it, remix it,
+        keep your mix),and as a Debussy fan i also added one of his tracks with some variations to it! You can also
+        access a
+        bestiary that refuses to spoil its best secrets. This site IS a peek into the
         tech the game is made of.</p>
       <p>And you can buy the first playable right here — checkout handled by itch.io, no
         account needed. Buying direct supports me the most, gets you every update from now
