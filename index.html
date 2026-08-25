@@ -120,7 +120,19 @@
       border-bottom: 4px solid #000;
     }
     #hero .shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(23,26,33,.25), rgba(23,26,33,.78) 82%); }
-    #hero img.logo { position: relative; width: min(760px, 82vw); filter: drop-shadow(0 10px 24px rgba(0,0,0,.6)); }
+    #sim {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      image-rendering: pixelated; touch-action: pan-y; cursor: crosshair;
+    }
+    .sim-spacer { height: 46vh; pointer-events: none; }
+    #hero .tag, #hero .cta, #hero .scroll-hint { pointer-events: none; }
+    #hero .cta a, #hero .scroll-hint { pointer-events: auto; }
+    #mend {
+      position: absolute; right: 18px; bottom: 16px; z-index: 3;
+      background: rgba(23,26,33,.75); color: var(--dim); border: 2px solid #000;
+      padding: 8px 14px; font-size: 12px; cursor: pointer; letter-spacing: 1px;
+    }
+    #mend:hover { color: var(--amber-light); }
     #hero p.tag {
       position: relative; margin-top: 6px; font-size: clamp(15px, 1.9vw, 22px);
       color: var(--amber-light); text-shadow: 2px 2px 0 #000; letter-spacing: 2px;
@@ -213,15 +225,19 @@
   </header>
 
   <!-- ── HERO ─────────────────────────────────────────────────────── -->
+  <!-- The title IS the simulation: each letter is an in-game material and
+       your cursor/finger erodes it by that material's real physics. -->
   <section id="hero">
     <div class="shade"></div>
-    <img class="logo" src="assets/logo.png" alt="PIXELFALL — the letters are the game's materials, crumbling by their own physics" />
+    <canvas id="sim" aria-label="PIXELFALL — an interactive title: touch the letters and each material crumbles by its own physics"></canvas>
+    <div class="sim-spacer"></div>
     <p class="tag">MEND THE HEART OF YOUR WORLD</p>
     <div class="cta">
       <a class="btn" href="#buy">BUY DIRECT — $9.99</a>
       <a class="btn ghost" href="https://store.steampowered.com/app/4899610" target="_blank" rel="noopener">WISHLIST ON STEAM</a>
     </div>
-    <div class="scroll-hint">▼ every grain below is simulated ▼</div>
+    <button id="mend" title="Rebuild the title">↺ MEND THE LETTERS</button>
+    <div class="scroll-hint">▼ touch the letters — every grain is simulated ▼</div>
   </section>
 
   <!-- ── WORLD / PHYSICS ──────────────────────────────────────────── -->
@@ -377,6 +393,216 @@
       lbi.src = im.src; lb.style.display = 'flex';
     }));
     lb.addEventListener('click', () => lb.style.display = 'none');
+
+    /* ═════════════════════════════════════════════════════════════════
+       THE LIVING TITLE — a falling-sand cellular automaton.
+       Each letter of PIXELFALL is an in-game material; cells sleep until
+       the pointer disturbs them, then obey that material's physics:
+       powders pile, liquids flow to the hero floor, solids break to
+       rubble (obsidian barely), ice shatters, fire burns UPWARD.
+       ═════════════════════════════════════════════════════════════════ */
+    (() => {
+      const cv = document.getElementById('sim');
+      const cx = cv.getContext('2d');
+      const CELL = 5;                      // css px per sim cell
+      // material table (colors from the game's materials.json)
+      const M = {
+        stone:    { c: [121,136,151], cat: 'solid', resist: 0.55 },
+        sand:     { c: [223,196,130], cat: 'powder' },
+        water:    { c: [44,123,182],  cat: 'liquid', slow: 0 },
+        magma:    { c: [214,75,29],   cat: 'liquid', slow: 1 },
+        dirt:     { c: [124,84,50],   cat: 'powder' },
+        grass:    { c: [92,143,55],   cat: 'powder' },
+        ice:      { c: [186,222,240], cat: 'solid', shatter: 6 },
+        fire:     { c: [255,170,50],  cat: 'fire' },
+        snow:     { c: [242,247,249], cat: 'powder' },
+        obsidian: { c: [46,27,56],    cat: 'solid', resist: 0.94 },
+      };
+      const LETTERS = [
+        ['P','stone'],['I','sand'],['X','water'],['E','magma'],['L','dirt'],
+        ['F','ice'],['A','fire'],['L','snow'],['L','obsidian']
+      ];
+      const ids = Object.keys(M);                  // 0-based material ids (+1 stored)
+      const idOf = n => ids.indexOf(n) + 1;
+      let W, H, mat, shade, awake, life, rubble, initial, img;
+
+      function build() {
+        const r = cv.getBoundingClientRect();
+        W = Math.floor(r.width / CELL); H = Math.floor(r.height / CELL);
+        cv.width = W; cv.height = H;               // 1 canvas px = 1 cell
+        cx.imageSmoothingEnabled = false;
+        mat = new Uint8Array(W * H); shade = new Float32Array(W * H);
+        awake = new Uint8Array(W * H); life = new Uint8Array(W * H);
+        rubble = new Uint8Array(W * H);   // solid cells knocked loose -> fall
+        img = cx.createImageData(W, H);
+        // typeset the wordmark on an offscreen canvas at cell resolution
+        const oc = document.createElement('canvas'); oc.width = W; oc.height = H;
+        const o = oc.getContext('2d');
+        let fs = H; const maxW = W * 0.86;
+        do { o.font = `${fs}px Minecraft, monospace`; fs--; }
+        while (o.measureText('PIXELFALL').width > maxW && fs > 8);
+        const tw = o.measureText('PIXELFALL').width;
+        const tx = (W - tw) / 2, ty = H * 0.34;
+        o.textBaseline = 'middle';
+        // per-letter x spans -> material regions
+        let adv = 0; const spans = [];
+        for (const [ch] of LETTERS) {
+          const w = o.measureText(ch).width;
+          spans.push([tx + adv, tx + adv + w]); adv += w;
+        }
+        o.lineJoin = 'round';
+        o.lineWidth = Math.max(2, fs / 14);
+        o.strokeStyle = '#122c38'; o.fillStyle = '#ffffff';
+        o.strokeText('PIXELFALL', tx, ty); o.fillText('PIXELFALL', tx, ty);
+        const px = o.getImageData(0, 0, W, H).data;
+        const topOf = new Int16Array(W).fill(-1);
+        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+          const a = px[(y * W + x) * 4 + 3];
+          if (a < 120) continue;
+          let li = 0;
+          for (let s = 0; s < spans.length; s++)
+            if (x >= spans[s][0] - 1 && x <= spans[s][1] + 1) { li = s; break; }
+          const mname = LETTERS[li][1];
+          const i = y * W + x;
+          const isStroke = px[(y * W + x) * 4] < 120;      // navy vs white fill
+          mat[i] = idOf(mname);
+          shade[i] = isStroke ? 0.32 : (0.9 + Math.random() * 0.32);
+          if (topOf[x] < 0) topOf[x] = y;
+        }
+        // grass lip on the dirt L, flame gradient on the fire A
+        const [dL, dR] = spans[4], [fL, fR] = spans[6];
+        for (let x = 0; x < W; x++) {
+          if (topOf[x] < 0) continue;
+          if (x >= dL && x <= dR)
+            for (let y = topOf[x]; y < Math.min(topOf[x] + 2, H); y++) {
+              const i = y * W + x;
+              if (mat[i] === idOf('dirt')) mat[i] = idOf('grass');
+            }
+        }
+        for (let y = 0; y < H; y++) for (let x = Math.floor(fL); x <= fR && x < W; x++) {
+          const i = y * W + x;
+          if (mat[i] === idOf('fire') && shade[i] > 0.5)
+            shade[i] = 1.25 - (y - topOf[Math.floor(x)] ) * 0.012; // hotter low
+        }
+        initial = { mat: mat.slice(), shade: shade.slice() };
+      }
+
+      const at = (x, y) => (x < 0 || x >= W || y < 0 || y >= H) ? -1 : y * W + x;
+      function wake(x, y) {
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+          const i = at(x + dx, y + dy);
+          if (i >= 0 && mat[i]) awake[i] = 1;
+        }
+      }
+      function moveTo(i, j, x2, y2) {
+        mat[j] = mat[i]; shade[j] = shade[i]; life[j] = life[i];
+        rubble[j] = rubble[i]; awake[j] = 1;
+        mat[i] = 0; awake[i] = 0; rubble[i] = 0;
+        wake(i % W, (i / W) | 0); wake(x2, y2);
+      }
+
+      function step() {
+        const ltr = (frame & 1) === 0;
+        for (let y = H - 1; y >= 0; y--) {
+          for (let k = 0; k < W; k++) {
+            const x = ltr ? k : W - 1 - k;
+            const i = y * W + x;
+            const m = mat[i];
+            if (!m || !awake[i]) continue;
+            const def = M[ids[m - 1]];
+            const cat = (def.cat === 'solid' && rubble[i]) ? 'powder' : def.cat;
+            if (cat === 'solid') { awake[i] = 0; continue; }
+            if (cat === 'fire') {
+              // embers rise, flicker, burn out
+              life[i]++;
+              if (life[i] > 26 + (x % 7)) { mat[i] = 0; awake[i] = 0; continue; }
+              const dx = (Math.random() * 3 | 0) - 1;
+              const j = at(x + dx, y - 1);
+              if (j >= 0 && !mat[j]) moveTo(i, j, x + dx, y - 1);
+              else { const j2 = at(x, y - 1); if (j2 >= 0 && !mat[j2]) moveTo(i, j2, x, y - 1); }
+              continue;
+            }
+            if (def.slow && (frame & 1)) continue;   // viscous magma
+            const below = at(x, y + 1);
+            if (below >= 0 && !mat[below]) { moveTo(i, below, x, y + 1); continue; }
+            const d = Math.random() < 0.5 ? 1 : -1;
+            const dl = at(x - d, y + 1), dr = at(x + d, y + 1);
+            if (dl >= 0 && !mat[dl]) { moveTo(i, dl, x - d, y + 1); continue; }
+            if (dr >= 0 && !mat[dr]) { moveTo(i, dr, x + d, y + 1); continue; }
+            if (cat === 'liquid') {
+              const s1 = at(x + d, y), s2 = at(x - d, y);
+              if (s1 >= 0 && !mat[s1]) { moveTo(i, s1, x + d, y); continue; }
+              if (s2 >= 0 && !mat[s2]) { moveTo(i, s2, x - d, y); continue; }
+            }
+            awake[i] = 0;   // settled
+          }
+        }
+      }
+
+      function disturb(cxx, cyy, r) {
+        for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+          if (dx * dx + dy * dy > r * r) continue;
+          const x = cxx + dx, y = cyy + dy, i = at(x, y);
+          if (i < 0 || !mat[i]) continue;
+          const name = ids[mat[i] - 1], def = M[name];
+          if (def.cat === 'solid') {
+            if (def.shatter) {                    // ice: shatter a whole pane
+              for (let sy = -def.shatter; sy <= def.shatter; sy++)
+                for (let sx = -def.shatter; sx <= def.shatter; sx++) {
+                  const j = at(x + sx, y + sy);
+                  if (j >= 0 && mat[j] === mat[i]) { rubble[j] = 1; awake[j] = 1; }
+                }
+            } else if (Math.random() > def.resist) {
+              rubble[i] = 1; awake[i] = 1;        // chip loose; falls as rubble
+              shade[i] *= 0.92;
+            }
+          } else {
+            awake[i] = 1;
+            if (def.cat === 'fire') life[i] = (Math.random() * 8) | 0;
+          }
+          wake(x, y);
+        }
+      }
+
+      function render() {
+        const d = img.data;
+        for (let i = 0; i < W * H; i++) {
+          const o4 = i * 4, m = mat[i];
+          if (!m) { d[o4 + 3] = 0; continue; }
+          const c = M[ids[m - 1]].c, s = shade[i];
+          d[o4] = Math.min(255, c[0] * s);
+          d[o4 + 1] = Math.min(255, c[1] * s);
+          d[o4 + 2] = Math.min(255, c[2] * s);
+          d[o4 + 3] = 255;
+        }
+        cx.putImageData(img, 0, 0);
+      }
+
+      let frame = 0;
+      function loop() { step(); render(); frame++; requestAnimationFrame(loop); }
+
+      function pointer(e) {
+        const r = cv.getBoundingClientRect();
+        const pts = e.touches ? [...e.touches] : [e];
+        for (const p of pts)
+          disturb(((p.clientX - r.left) / CELL) | 0, ((p.clientY - r.top) / CELL) | 0, 3);
+      }
+      cv.addEventListener('pointermove', pointer);
+      cv.addEventListener('pointerdown', pointer);
+      cv.addEventListener('touchmove', pointer, { passive: true });
+
+      document.getElementById('mend').addEventListener('click', () => {
+        mat.set(initial.mat); shade.set(initial.shade);
+        awake.fill(0); life.fill(0); rubble.fill(0);
+      });
+      let rsT; window.addEventListener('resize', () => {
+        clearTimeout(rsT); rsT = setTimeout(build, 250);
+      });
+
+      // wait for the pixel font so the letters typeset correctly
+      (document.fonts ? document.fonts.load('20px Minecraft').then(() => document.fonts.ready)
+                      : Promise.resolve()).then(() => { build(); loop(); });
+    })();
   </script>
 </body>
 
