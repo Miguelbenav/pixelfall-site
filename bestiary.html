@@ -320,6 +320,10 @@ canvas.title-sim { display:block; margin:0 auto; image-rendering:pixelated;
 .star { position:absolute; background:#fff; animation:twinkle var(--d,3s) ease-in-out infinite alternate; }
 @keyframes twinkle { from { opacity:var(--a1,.15); } to { opacity:var(--a2,.7); } }
 .wrap { position:relative; z-index:1; }
+
+/* -- deep space behind everything: the game's own nebula backdrop --- */
+html, body { background:#0a0714 url('assets/nebula.png') repeat !important;
+  background-size:1024px 1024px !important; background-attachment:fixed !important; }
 </style>
 
 <button class="toggle" id="themeToggle" aria-label="Toggle light and dark">◐ Theme</button>
@@ -778,7 +782,7 @@ if ("IntersectionObserver" in window && !REDUCE) {
 /* ══ theme (remembered) ══════════════════════════════════════════════ */
 const tg = document.getElementById("themeToggle");
 const saved = localStorage.getItem("ef-bestiary-theme");
-if (saved) document.documentElement.setAttribute("data-theme", saved);
+document.documentElement.setAttribute("data-theme", saved || "dark");  // space wants dark
 tg.addEventListener("click", () => {
   const cur = document.documentElement.getAttribute("data-theme")
     || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");

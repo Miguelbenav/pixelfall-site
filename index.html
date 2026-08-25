@@ -751,7 +751,8 @@
         }
         dist = Math.max(20, Math.min(dist, 280));
         const rot = (4 + Math.random() * 9) * (Math.random() < 0.5 ? -1 : 1);
-        im.style.transformOrigin = rot < 0 ? 'bottom left' : 'bottom right';
+        const drift = (rot < 0 ? -1 : 1) * Math.min(34, dist * 0.14);
+        im.style.transformOrigin = 'center center';   // free fall, not a hinge
         im.classList.add('fallen');
         im.style.transition = 'none';
         let y = 0, v = 0, t0 = null, bounces = 0;
@@ -767,8 +768,9 @@
             if (bounces < 2 && v > 170) { v = -v * 0.34; bounces++; }
             else v = 0;
           }
-          const a = rot * Math.min(1, y / dist);
-          im.style.transform = 'translateY(' + y.toFixed(1) + 'px) rotate(' + a.toFixed(2) + 'deg)';
+          const p = Math.min(1, y / dist);
+          im.style.transform = 'translate(' + (drift * p).toFixed(1) + 'px,' + y.toFixed(1) +
+            'px) rotate(' + (rot * p).toFixed(2) + 'deg)';
           if (y < dist || v !== 0) requestAnimationFrame(step);
           else setTimeout(rehang, 4500);      // it lies there a while, then...
         };
