@@ -307,6 +307,10 @@ footer .em { color:var(--ember); }
 @media (prefers-reduced-motion: reduce){ .am-slot img{ animation:none; } }
 /* -- living titles ------------------------------------------------- */
 @font-face { font-family:'Minecraft'; src:url('assets/Minecraft.ttf') format('truetype'); }
+/* whole guide speaks the brand type (Miguel 2026-08-22) */
+*, *::before, *::after { font-family:'Minecraft', monospace !important; }
+body { letter-spacing:.2px; }
+.sec-lead, .lore, .sub, p { line-height:1.65 !important; }
 canvas.title-sim { display:block; margin:0 auto; image-rendering:pixelated;
   cursor:crosshair; max-width:100%; }
 .sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
