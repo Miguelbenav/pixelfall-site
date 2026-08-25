@@ -211,6 +211,26 @@
     }
     footer a { color: var(--blue); text-decoration: none; }
 
+    /* ── the dev letter (first visit) ── */
+    #letter-overlay {
+      position: fixed; inset: 0; z-index: 300;
+      background: rgba(10, 12, 17, .88);
+      display: none; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    #letter-overlay.show { display: flex; }
+    #letter {
+      max-width: 640px; max-height: 86vh; overflow-y: auto;
+      border: 14px solid transparent;
+      border-image: url('assets/kenney/panel_parchment.png') 10 fill round;
+      image-rendering: pixelated;
+      color: #5b4a2f; padding: 26px 30px;
+    }
+    #letter h2 { font-size: 20px; margin-bottom: 16px; color: #4a3820; letter-spacing: 1px; }
+    #letter p { font-size: 14.5px; line-height: 1.7; margin-bottom: 14px; }
+    #letter .sig { font-size: 16px; margin-top: 6px; }
+    #letter .btn { margin-top: 12px; }
+
     @media (max-width: 640px) {
       header nav { display: none; }
       section { padding: 60px 5vw; }
@@ -219,6 +239,25 @@
 </head>
 
 <body>
+  <div id="letter-overlay" role="dialog" aria-modal="true" aria-labelledby="letter-title">
+    <div id="letter">
+      <h2 id="letter-title">A LETTER FROM THE DEV</h2>
+      <p>Hey everyone — it's Miguel Benavides.</p>
+      <p>I'm a solo dev, and I've been a lover and a fan of the crafting-survival genre since
+        I was a little kid. As some of you have already noticed, <em>pixelfall.net</em> is my —
+        very possibly cringy — way of paying what's owed, in admiration, to the guy who made it
+        all come true: <strong>Notch</strong>. And to the craft itself. So: thank you. You're the
+        guy. You're the dude that made it all happen, and it's why I'm here today.</p>
+      <p>Please enjoy. This is a passion project — made with love and care — and it's a world
+        that will be constantly evolving. Hit me up with any comments and thoughts you have
+        about the game. And please, don't be too harsh: this is my first attempt at doing
+        this as a solo dev.</p>
+      <p>For context — I'm GM and co-head of studio at Mad Bricks, a game studio that's been
+        going for thirteen years now. This is my first real take on making everything by myself.</p>
+      <p class="sig">See you in the world,<br />— Miguel</p>
+      <button class="btn" id="letter-close">ENTER PIXELFALL</button>
+    </div>
+  </div>
   <div id="starfield"></div>
 
   <header>
@@ -346,7 +385,7 @@
       Don't just listen: <em>open the actual DAW it was written in</em>, scrub the piano rolls,
       solo the tracks, even drop your own notes onto the grid.</p>
     <div style="text-align:center">
-      <a class="btn" href="daw.html">OPEN THE PIXELDAW ♪</a>
+      <a class="btn" href="daw.html">OPEN THE PIXELDAW</a>
     </div>
     <p class="section-sub" style="margin:18px auto 0; font-size:13px;">Runs right in your browser —
       the same chip-synth voices the game uses. Your edits are yours alone.</p>
@@ -395,12 +434,27 @@
     <a href="https://store.steampowered.com/app/4899610">Steam</a> ·
     <a href="bestiary.html">Bestiary</a> ·
     <a href="daw.html">PixelDAW</a> ·
+    <a href="#" id="letter-open">A letter from the dev</a> ·
     <a href="mailto:miguelbenav@gmail.com">Contact</a>
   </footer>
 
   <div id="lightbox"><img src="" alt="" /></div>
 
   <script>
+    // the dev letter: greets every first-time visitor, reopenable from the footer
+    const lo = document.getElementById('letter-overlay');
+    try {
+      if (!localStorage.getItem('pf-letter-seen')) lo.classList.add('show');
+    } catch (e) { lo.classList.add('show'); }
+    document.getElementById('letter-close').addEventListener('click', () => {
+      lo.classList.remove('show');
+      try { localStorage.setItem('pf-letter-seen', '1'); } catch (e) {}
+    });
+    document.getElementById('letter-open').addEventListener('click', (e) => {
+      e.preventDefault(); lo.classList.add('show'); window.scrollTo(0, 0);
+    });
+    lo.addEventListener('click', (e) => { if (e.target === lo) document.getElementById('letter-close').click(); });
+
     // starfield
     const sf = document.getElementById('starfield');
     for (let i = 0; i < 90; i++) {
