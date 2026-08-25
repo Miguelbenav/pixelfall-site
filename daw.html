@@ -1,0 +1,772 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>PIXELDAW — The Mosslight Suite</title>
+<style>
+@font-face { font-family:'Minecraft'; src:url('assets/Minecraft.ttf') format('truetype'); }
+:root { --bg:#171a21; --panel:#1b2838; --ink:#c7d5e0; --dim:#8f98a0; --acc:#f0a500; --acc2:#66c0f4; }
+* { box-sizing:border-box; } body { margin:0; background:var(--bg); color:var(--ink);
+  font:13px 'Minecraft','Cascadia Code',Consolas,monospace; }
+header { display:flex; gap:10px; align-items:center; padding:8px 12px; background:var(--panel);
+  border-bottom:1px solid #000000; flex-wrap:wrap; }
+h1 { font-size:15px; margin:0 12px 0 0; color:var(--acc); }
+button { background:#2a475e; color:var(--ink); border:1px solid #0d1319; border-radius:5px;
+  padding:5px 12px; cursor:pointer; font:inherit; }
+button:hover { border-color:var(--acc); } button.on { background:var(--acc); color:#10202a; }
+select,input[type=number] { background:#2a475e; color:var(--ink); border:1px solid #0d1319;
+  border-radius:4px; padding:3px 6px; font:inherit; width:auto; }
+input[type=number] { width:62px; }
+#tabs { display:flex; gap:4px; padding:6px 12px; background:#10151d; }
+#tabs button { padding:4px 10px; font-size:12px; }
+main { display:flex; height:calc(100vh - 96px); }
+#tracks { width:270px; overflow-y:auto; background:var(--panel); border-right:1px solid #000000; }
+.trk { padding:8px 10px; border-bottom:1px solid #22303c; cursor:pointer; }
+.trk.sel { background:#2a475e; border-left:3px solid var(--acc); }
+.trk .nm { font-weight:bold; margin-bottom:4px; } .trk .row { display:flex; gap:5px; margin:3px 0;
+  align-items:center; font-size:11px; color:var(--dim); flex-wrap:wrap; }
+#rollwrap { flex:1; overflow:auto; position:relative; }
+canvas { display:block; image-rendering:pixelated; }
+#playhead { position:absolute; top:0; left:0; width:2px; background:var(--acc);
+  box-shadow:0 0 6px var(--acc); display:none; pointer-events:none; z-index:5; }
+#status { padding:5px 12px; color:var(--dim); font-size:12px; background:#10151d;
+  border-top:1px solid #000000; white-space:pre-wrap; }
+label { color:var(--dim); font-size:11px; }
+</style></head><body>
+<header>
+  <a href="index.html" title="back to PIXELFALL"><img src="assets/icon_heart.png" style="height:26px;display:block;image-rendering:pixelated"></a>
+  <h1>PIXELDAW &mdash; THE MOSSLIGHT SUITE</h1>
+  <button id="play">&#9654; Play</button>
+  <button id="stop">&#9632; Stop</button>
+  <button id="zout" title="zoom out (Ctrl+scroll)">&#128269;&minus;</button>
+  <button id="zin" title="zoom in (Ctrl+scroll)">&#128269;+</button>
+  <label><input type="checkbox" id="loop" checked> loop</label>
+  <label>from bar <input type="number" id="frombar" value="1" min="1" max="99"
+    oninput="playStartBeat=(Math.max(1,parseInt(this.value||1))-1)*4; draw();"></label>
+  <label title="tempo of the CURRENT song">BPM <input type="number" id="bpm" value="96" min="40" max="220"
+    oninput="if(score&&score.movements[mvi]) score.movements[mvi].bpm=parseFloat(this.value)||96;"></label>
+  <label>note len <select id="nlen"><option>0.25</option><option>0.5</option><option selected>1</option>
+    <option>1.5</option><option>2</option><option>3</option><option>4</option></select> beats</label>
+  <label>velocity <input type="number" id="nvel" value="0.8" min="0.05" max="1" step="0.05"></label>
+  <button id="idesign">&#9881; Instruments</button>
+  <span style="margin-left:auto;font-size:11px;color:var(--dim)">the real tool the suite was written in &mdash; play, zoom, add notes; edits stay in your browser &middot; <a href="index.html" style="color:var(--acc);text-decoration:none">&larr; pixelfall.net</a></span>
+</header>
+<div id="ipanel" style="display:none; padding:8px 12px; background:#10151d; border-bottom:1px solid #000000;">
+  <div class="row" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+    <label>edit <select id="ci_pick"><option value="">— new —</option></select></label>
+    <label>name <input id="ci_name" style="width:110px;background:#2a475e;color:var(--ink);border:1px solid #0d1319;border-radius:4px;padding:3px 6px;font:inherit;"></label>
+    <label>wave <select id="ci_wave"><option>square</option><option>pulse25</option><option>pulse125</option>
+      <option>triangle</option><option>saw</option><option>sine</option></select></label>
+    <label>atk <input type="number" id="ci_atk" value="0.005" step="0.005" min="0"></label>
+    <label>dec <input type="number" id="ci_dec" value="0.5" step="0.05" min="0.01"></label>
+    <label>sus <input type="number" id="ci_sus" value="0" step="0.05" min="0" max="1"></label>
+    <label>rel <input type="number" id="ci_rel" value="0.2" step="0.05" min="0.01"></label>
+    <label>lowpass <input type="number" id="ci_lp" value="0" step="100" min="0"></label>
+    <label>crush <input type="number" id="ci_cr" value="0" step="2" min="0" max="64"></label>
+  </div>
+  <div class="row" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:6px;">
+    <label>vib rate <input type="number" id="ci_vr" value="0" step="0.5" min="0"></label>
+    <label>depth% <input type="number" id="ci_vd" value="0" step="0.1" min="0"></label>
+    <label>delay <input type="number" id="ci_vy" value="0.1" step="0.05" min="0"></label>
+    <label>| fm ratio <input type="number" id="ci_fr" value="2" step="0.5" min="0.5"></label>
+    <label>index <input type="number" id="ci_fi" value="0" step="0.2" min="0"></label>
+    <label>fm dec <input type="number" id="ci_fd" value="5" step="0.5" min="0.5"></label>
+    <label>| partial1 x<input type="number" id="ci_p1m" value="2" step="0.01" min="1"></label>
+    <label>lvl <input type="number" id="ci_p1l" value="0" step="0.05" min="0"></label>
+    <label>x2 <input type="number" id="ci_p2m" value="3" step="0.01" min="1"></label>
+    <label>lvl <input type="number" id="ci_p2l" value="0" step="0.05" min="0"></label>
+    <button id="ci_test">Test</button>
+    <button id="ci_save">Save instrument</button>
+  </div>
+</div>
+<div id="tabs"></div>
+<main>
+  <div id="tracks"></div>
+  <div id="rollwrap"><canvas id="roll"></canvas><div id="playhead"></div></div>
+</main>
+<div id="status">loading score.json…</div>
+<script>
+'use strict';
+const INSTRUMENTS = ['pulse125','pulse25','square50','pluck25','pluck50','triangle',
+                     'chipsine','harp','piano','bell','sinebass','noise',
+                     'n64_epiano','n64_flute','n64_strings','n64_guitar',
+                     'n64_bell','n64_bass','n64_marimba'];
+const COLORS = ['#dfc482','#5db5f0','#ff7a45','#8fce6a','#badef0','#ffaa32','#f2f7f9','#9fb0c0','#b58fd8'];
+let score = null, mvi = 0, tri = 0, ac = null, playing = false, playTimer = null;
+const $ = id => document.getElementById(id);
+const status = m => $('status').textContent = m;
+
+fetch('assets/score.json').then(r => r.json()).then(s => { score = s; $('bpm').value = s.bpm || 96;
+  buildTabs(); buildTracks(); draw(); status('ready — click roll to add/remove notes on the selected track'); })
+  .catch(e => status('no score: run  py tools/export_seed_score.py   (' + e + ')'));
+
+function mv() { return score.movements[mvi]; }
+function trk() { return mv().tracks[tri]; }
+
+function buildTabs() {
+  const t = $('tabs'); t.innerHTML = '';
+  const lab = document.createElement('label');
+  lab.textContent = 'song ';
+  lab.style.cssText = 'color:var(--dim);font-size:12px;';
+  const sl = document.createElement('select');
+  sl.style.cssText = 'font-size:13px;padding:4px 8px;max-width:420px;';
+  score.movements.forEach((m, i) => {
+    const o = document.createElement('option');
+    const n = m.tracks.reduce((a, tr) => a + tr.notes.length, 0);
+    o.value = i;
+    o.textContent = `${m.name}  —  ${m.bars} bars, ${n} notes`;
+    if (i === mvi) o.selected = true;
+    sl.appendChild(o);
+  });
+  sl.onchange = () => { mvi = parseInt(sl.value, 10); tri = 0; sel.clear();
+                        $('bpm').value = mv().bpm || score.bpm;
+                        buildTabs(); buildTracks(); draw(); };
+  lab.appendChild(sl);
+  t.appendChild(lab);
+}
+function buildTracks() {
+  const el = $('tracks'); el.innerHTML = '';
+  mv().tracks.forEach((t, i) => {
+    const d = document.createElement('div');
+    d.className = 'trk' + (i === tri ? ' sel' : '');
+    d.style.borderLeftColor = COLORS[i % COLORS.length];
+    const allInst = INSTRUMENTS.concat(Object.keys(score.customInstruments || {}));
+    const inst = allInst.map(x =>
+      `<option${x === t.instrument ? ' selected' : ''}>${x}</option>`).join('')
+      + '<option value="__new__">＋ new instrument…</option>';
+    d.innerHTML = `<div class="nm" style="color:${COLORS[i % COLORS.length]}" title="double-click to rename">${t.name}
+        <span style="float:right;color:var(--dim)">${t.notes.length}n
+        <span class="trkdel" style="cursor:pointer;color:#ff6b8a;margin-left:6px;" title="delete track">&times;</span></span></div>
+      <div class="row">inst <select data-k="instrument">${inst}</select>
+        <label><input type="checkbox" data-k="mute"${t.mute ? ' checked' : ''}>mute</label>
+        <label><input type="checkbox" data-k="dry"${t.dry ? ' checked' : ''}>dry</label></div>
+      <div class="row">gain <input type="number" data-k="gain" value="${t.gain ?? 1}" step="0.05" min="0" max="3">
+        oct <input type="number" data-k="octave" value="${t.octave ?? 0}" step="1" min="-3" max="3">
+        pan <input type="number" data-k="pan" value="${t.pan ?? 0.5}" step="0.05" min="0" max="1"></div>`;
+    d.onclick = e => { if (e.target.dataset.k) return; tri = i; sel.clear(); buildTracks(); draw(); };
+    d.querySelectorAll('[data-k]').forEach(inp => {
+      const apply = () => {           // oninput = LIVE while spinning/dragging
+        const k = inp.dataset.k;
+        if (k === 'instrument' && inp.value === '__new__') {
+          inp.value = t.instrument;   // don't leave the select on "+ new"
+          openDesignerFor(i);         // designer opens wired to THIS track
+          return;
+        }
+        t[k] = inp.type === 'checkbox' ? inp.checked : (k === 'instrument' ? inp.value : parseFloat(inp.value));
+        draw();
+      };
+      inp.oninput = apply; inp.onchange = apply;
+    });
+    d.querySelector('.nm').ondblclick = () => {
+      const nm = prompt('Track name', t.name);
+      if (nm) { t.name = nm; buildTracks(); }
+    };
+    d.querySelector('.trkdel').onclick = e => {
+      e.stopPropagation();
+      if (t.notes.length && !confirm(`Delete track "${t.name}" (${t.notes.length} notes)?`)) return;
+      mv().tracks.splice(i, 1);
+      tri = Math.max(0, Math.min(tri, mv().tracks.length - 1));
+      sel.clear(); buildTracks(); draw();
+    };
+    el.appendChild(d);
+  });
+  // ＋ ADD TRACK: aggregate a new arrangement line into this movement
+  const addBtn = document.createElement('button');
+  addBtn.textContent = '＋ add track';
+  addBtn.style.cssText = 'margin:10px; width:calc(100% - 20px);';
+  addBtn.onclick = () => {
+    const m = mv();
+    m.tracks.push({ name: 'Track ' + (m.tracks.length + 1), instrument: 'square50',
+                    gain: 1.0, octave: 0, pan: 0.5, notes: [] });
+    tri = m.tracks.length - 1;
+    sel.clear(); buildTracks(); draw();
+    status(`track added to ${m.name} — pick an instrument (or ＋ new instrument…) and draw notes`);
+  };
+  el.appendChild(addBtn);
+}
+
+// ── piano roll ───────────────────────────────────────────────
+const LOW = 21, HIGH = 108;   // the full 88 keys: A0 .. C8
+let CW = 9, RH = 8;                          // 16th cell width, semitone row height (zoomable)
+function setZoom(f, viewOffPx) {
+  const wrap = $('rollwrap');
+  const off = viewOffPx ?? wrap.clientWidth / 2;      // px from viewport left
+  const beatAt = (wrap.scrollLeft + off) / (4 * CW);  // beat under that point
+  CW = Math.max(2, Math.min(24, CW * f));
+  RH = Math.max(4, Math.min(13, Math.round(8 * Math.max(CW / 9, 0.55))));
+  draw();
+  wrap.scrollLeft = Math.max(0, beatAt * 4 * CW - off);
+  $('playhead').style.height = roll.height + 'px';
+}
+const roll = $('roll'), ctx2 = roll.getContext('2d');
+const RULER = 20;                            // bar ruler strip height (px)
+let playStartBeat = 0;                       // where Play begins (set on ruler)
+function beats() { return (mv().bars || 50) * 4; }
+function draw() {
+  const W = beats() * 4 * CW, H = RULER + (HIGH - LOW + 1) * RH;
+  roll.width = W; roll.height = H;
+  ctx2.fillStyle = '#171a21'; ctx2.fillRect(0, 0, W, H);
+  for (let m = LOW; m <= HIGH; m++) {
+    const y = RULER + (HIGH - m) * RH;
+    const pc = ((m % 12) + 12) % 12;
+    if ([1,3,6,8,10].includes(pc)) { ctx2.fillStyle = '#10151d'; ctx2.fillRect(0, y, W, RH); }
+    if (pc === 0) {
+      ctx2.fillStyle = '#2a475e'; ctx2.fillRect(0, y + RH - 1, W, 1);
+      // octave label stamped every 8 bars so it's always in view
+      ctx2.fillStyle = '#5a6b7a'; ctx2.font = '9px Minecraft, monospace';
+      const lab = 'C' + (m / 12 - 1);
+      for (let b = 0; b <= beats(); b += 32)
+        ctx2.fillText(lab, b * 4 * CW + 3, y + RH - 2);
+    }
+  }
+  for (let b = 0; b <= beats(); b++) {
+    ctx2.fillStyle = b % 16 === 0 ? '#0d1319' : (b % 4 === 0 ? '#2a475e' : '#1b2838');
+    ctx2.fillRect(b * 4 * CW, RULER, 1, H - RULER);
+  }
+  // ruler: bar numbers + click-to-set play start
+  ctx2.fillStyle = '#10151d'; ctx2.fillRect(0, 0, W, RULER);
+  ctx2.fillStyle = '#2a475e'; ctx2.fillRect(0, RULER - 1, W, 1);
+  ctx2.fillStyle = '#8f98a0'; ctx2.font = '10px Minecraft, monospace';
+  for (let bar = 0; bar * 4 <= beats(); bar += (CW < 5 ? 4 : 1)) {
+    ctx2.fillRect(bar * 16 * CW, 0, 1, RULER);
+    ctx2.fillText(bar + 1, bar * 16 * CW + 3, 13);
+  }
+  // play-start marker: flag + dashed drop line
+  const px0 = playStartBeat * 4 * CW;
+  ctx2.fillStyle = '#f0a500';
+  ctx2.beginPath(); ctx2.moveTo(px0, 0); ctx2.lineTo(px0 + 9, 0);
+  ctx2.lineTo(px0, 12); ctx2.closePath(); ctx2.fill();
+  ctx2.strokeStyle = 'rgba(240,165,0,0.45)'; ctx2.setLineDash([3, 4]);
+  ctx2.beginPath(); ctx2.moveTo(px0 + 0.5, RULER); ctx2.lineTo(px0 + 0.5, H); ctx2.stroke();
+  ctx2.setLineDash([]);
+  mv().tracks.forEach((t, i) => {
+    if (t.mute) return;
+    const col = COLORS[i % COLORS.length];
+    ctx2.globalAlpha = i === tri ? 1.0 : 0.30;
+    t.notes.forEach(n => {
+      const x = n.b * 4 * CW, y = RULER + (HIGH - (n.m + (t.octave || 0) * 12)) * RH;
+      const w = Math.max(n.d * 4 * CW - 1, 3);
+      ctx2.fillStyle = col;
+      ctx2.fillRect(x, y + 1, w, RH - 2);
+      ctx2.fillStyle = '#00000055';
+      ctx2.fillRect(x, y + 1, 2, RH - 2);
+      if (i === tri && sel.has(n)) {
+        ctx2.strokeStyle = '#ffffff'; ctx2.lineWidth = 1.5;
+        ctx2.strokeRect(x - 0.5, y + 0.5, w + 1, RH - 1);
+      }
+    });
+  });
+  ctx2.globalAlpha = 1.0;
+  if (marq && marq.active) {
+    const x0 = Math.min(marq.b0, marq.b1) * 4 * CW, x1 = Math.max(marq.b0, marq.b1) * 4 * CW;
+    const y0 = RULER + (HIGH - Math.max(marq.m0, marq.m1)) * RH,
+          y1 = RULER + (HIGH - Math.min(marq.m0, marq.m1) + 1) * RH;
+    ctx2.fillStyle = 'rgba(240,165,0,0.10)';
+    ctx2.fillRect(x0, y0, x1 - x0, y1 - y0);
+    ctx2.strokeStyle = 'rgba(240,165,0,0.7)'; ctx2.lineWidth = 1;
+    ctx2.strokeRect(x0 + 0.5, y0 + 0.5, x1 - x0, y1 - y0);
+  }
+}
+// ── note editing ──────────────────────────────────────────────────────────
+// empty space:  stationary click = add note (or clear selection if one is
+//               active); CLICK + HOLD + DRAG = marquee-select an area.
+// on a note:    stationary click = delete; hold + drag = move (the whole
+//               selection moves together if the note is selected).
+let drag = null, marq = null, sel = new Set();
+let clip = null, hoverBx = 0;      // MIDI clipboard + last roll mouse beat
+roll.addEventListener('mousemove', e => {
+  const p = rollPos(e); hoverBx = p.bx;
+  if (drag || marq) return;
+  const t = trk(), oct = (t.octave || 0) * 12;
+  const h = t && t.notes.find(n => (n.m + oct) === p.m && p.bx >= n.b && p.bx < n.b + n.d);
+  const edge = 6 / (4 * CW);
+  roll.style.cursor = (h && h.d > 0.25 &&
+    (p.bx > h.b + h.d - edge || p.bx < h.b + edge)) ? 'ew-resize' : '';
+});
+$('zin').onclick = () => setZoom(1.3);
+$('zout').onclick = () => setZoom(1 / 1.3);
+$('rollwrap').addEventListener('wheel', e => {
+  if (!e.ctrlKey) return;
+  e.preventDefault();
+  setZoom(e.deltaY < 0 ? 1.2 : 1 / 1.2,
+          e.clientX - $('rollwrap').getBoundingClientRect().left);
+}, { passive: false });
+function rollPos(e) {
+  const r = roll.getBoundingClientRect();
+  const rawY = e.clientY - r.top;
+  return { bx: (e.clientX - r.left) / (4 * CW),
+           rawY,
+           m: HIGH - Math.floor((rawY - RULER) / RH) };
+}
+let rulerDrag = false, panDrag = null;
+function setPlayStart(bx) {
+  playStartBeat = Math.max(0, Math.min(Math.round(bx), beats() - 1));
+  $('frombar').value = Math.floor(playStartBeat / 4) + 1;
+  draw();
+}
+roll.onmousedown = e => {
+  e.preventDefault();
+  const { bx, m, rawY } = rollPos(e);
+  if (e.button === 1) {                     // middle mouse: pan the roll
+    const w = $('rollwrap');
+    panDrag = { x: e.clientX, y: e.clientY, sl: w.scrollLeft, st: w.scrollTop };
+    return;
+  }
+  if (rawY < RULER) {                       // ruler: set the play start
+    rulerDrag = true; setPlayStart(bx);
+    return;
+  }
+  const t = trk(), oct = (t.octave || 0) * 12;
+  const hit = t.notes.find(n => (n.m + oct) === m && bx >= n.b && bx < n.b + n.d);
+  if (hit) {
+    if (e.altKey) {                        // ALT+CLICK: cut the note in two
+      const cut = Math.round(bx * 4) / 4;
+      if (cut > hit.b && cut < hit.b + hit.d) {
+        const tail = { b: cut, m: hit.m, d: hit.b + hit.d - cut, v: hit.v };
+        hit.d = cut - hit.b;
+        t.notes.push(tail);
+        t.notes.sort((a, b2) => a.b - b2.b);
+        buildTracks(); draw();
+        status('note cut in two — drag either half');
+      }
+      return;
+    }
+    const edge = 6 / (4 * CW);             // ~6px grab zone, zoom-aware
+    let mode = 'move';
+    if (bx > hit.b + hit.d - edge && hit.d > 0.25) mode = 'r';
+    else if (bx < hit.b + edge && hit.d > 0.25) mode = 'l';
+    const group = (mode === 'move' && sel.has(hit)) ? [...sel] : [hit];
+    if (!sel.has(hit)) sel.clear();
+    drag = { mode, group: group.map(n => ({ n, ob: n.b, om: n.m })),
+             anchor: hit, endB: hit.b + hit.d, bx0: bx, m0: m, moved: false };
+  } else {
+    marq = { b0: bx, m0: m, b1: bx, m1: m, active: false };
+  }
+  draw();
+};
+window.addEventListener('mousemove', e => {
+  if (panDrag) {
+    const w = $('rollwrap');
+    w.scrollLeft = panDrag.sl - (e.clientX - panDrag.x);
+    w.scrollTop = panDrag.st - (e.clientY - panDrag.y);
+    return;
+  }
+  const p = rollPos(e);
+  if (rulerDrag) { setPlayStart(p.bx); return; }
+  if (marq) {
+    marq.b1 = p.bx; marq.m1 = p.m;
+    if (Math.abs(marq.b1 - marq.b0) > 0.12 || Math.abs(marq.m1 - marq.m0) >= 1)
+      marq.active = true;
+    if (marq.active) draw();
+    return;
+  }
+  if (!drag) return;
+  const t = trk(), oct = (t.octave || 0) * 12;
+  if (drag.mode === 'r') {                 // RESIZE from the right edge
+    const nd = Math.max(0.25, Math.min(Math.round((p.bx - drag.anchor.b) * 4) / 4,
+                                       beats() - drag.anchor.b));
+    if (nd !== drag.anchor.d) { drag.anchor.d = nd; drag.moved = true; draw(); }
+    return;
+  }
+  if (drag.mode === 'l') {                 // TRIM from the left edge
+    const nb = Math.max(0, Math.min(Math.round(p.bx * 4) / 4, drag.endB - 0.25));
+    if (nb !== drag.anchor.b) {
+      drag.anchor.b = nb; drag.anchor.d = drag.endB - nb;
+      drag.moved = true; draw();
+    }
+    return;
+  }
+  let dB = Math.round((p.bx - drag.bx0) * 4) / 4;
+  let dM = p.m - drag.m0;
+  // clamp the DELTA so the whole group stays inside the grid
+  for (const g of drag.group) {
+    dB = Math.max(-g.ob, Math.min(dB, beats() - g.n.d - g.ob));
+    dM = Math.max(LOW - oct - g.om, Math.min(dM, HIGH - oct - g.om));
+  }
+  const a = drag.group.find(g => g.n === drag.anchor);
+  if (a.ob + dB !== drag.anchor.b || a.om + dM !== drag.anchor.m) {
+    if (a.om + dM !== drag.anchor.m)
+      previewNote(t, { ...drag.anchor, m: a.om + dM });
+    for (const g of drag.group) { g.n.b = g.ob + dB; g.n.m = g.om + dM; }
+    drag.moved = true;
+    draw();
+  }
+});
+window.addEventListener('mouseup', e => {
+  if (panDrag) { panDrag = null; return; }
+  if (rulerDrag) { rulerDrag = false;
+    status(`play start set: bar ${Math.floor(playStartBeat / 4) + 1}, beat ${playStartBeat % 4 + 1} — press Play`);
+    return; }
+  const t = trk(), oct = (t.octave || 0) * 12;
+  if (marq) {
+    if (marq.active) {
+      const bLo = Math.min(marq.b0, marq.b1), bHi = Math.max(marq.b0, marq.b1);
+      const mLo = Math.min(marq.m0, marq.m1), mHi = Math.max(marq.m0, marq.m1);
+      sel = new Set(t.notes.filter(n => n.b < bHi && n.b + n.d > bLo
+                                     && (n.m + oct) >= mLo && (n.m + oct) <= mHi));
+      status(sel.size + ' notes selected — drag to move together, Delete to remove, Esc to clear');
+    } else if (sel.size) {
+      sel.clear(); status('selection cleared');
+    } else {
+      const q = Math.floor(marq.b0 * 4) / 4;
+      const n = { b: q, m: marq.m0 - oct, d: parseFloat($('nlen').value), v: parseFloat($('nvel').value) };
+      t.notes.push(n);
+      previewNote(t, n);
+      t.notes.sort((x, y) => x.b - y.b);
+      buildTracks();
+    }
+    marq = null; draw(); return;
+  }
+  if (!drag) return;
+  if (!drag.moved && drag.group.length === 1) {
+    t.notes.splice(t.notes.indexOf(drag.anchor), 1);
+    sel.delete(drag.anchor);
+  }
+  t.notes.sort((x, y) => x.b - y.b);
+  drag = null;
+  buildTracks(); draw();
+});
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  const t = trk();
+  if ((e.key === 'Delete' || e.key === 'Backspace') && sel.size) {
+    t.notes = t.notes.filter(n => !sel.has(n));
+    sel.clear(); buildTracks(); draw(); e.preventDefault();
+  } else if (e.key === 'Escape' && sel.size) {
+    sel.clear(); draw();
+  } else if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+    // SELECT ALL midi on the current track — then Ctrl+C grabs everything
+    sel = new Set(t.notes);
+    status(`all ${sel.size} notes of "${t.name}" selected — Ctrl+C to copy, drag to move, Delete to clear the track`);
+    draw(); e.preventDefault();
+  } else if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'x') && sel.size) {
+    // COPY / CUT: store notes relative to the selection's first beat
+    const base = Math.min(...[...sel].map(n => n.b));
+    clip = [...sel].map(n => ({ b: n.b - base, m: n.m, d: n.d, v: n.v }));
+    if (e.key === 'x') {
+      t.notes = t.notes.filter(n => !sel.has(n));
+      sel.clear(); buildTracks();
+    }
+    status(`${clip.length} notes ${e.key === 'x' ? 'cut' : 'copied'} — hover the roll and Ctrl+V (any track, any movement)`);
+    draw(); e.preventDefault();
+  } else if ((e.ctrlKey || e.metaKey) && e.key === 'v' && clip) {
+    // PASTE: anchored at the mouse position, original pitches kept; the
+    // pasted block arrives SELECTED so you can drag it straight into place
+    const anchor = Math.max(0, Math.floor(hoverBx * 4) / 4);
+    const fresh = clip.map(c => ({
+      b: Math.min(anchor + c.b, beats() - c.d), m: c.m, d: c.d, v: c.v }));
+    t.notes.push(...fresh);
+    t.notes.sort((a, b2) => a.b - b2.b);
+    sel = new Set(fresh);
+    buildTracks(); draw(); e.preventDefault();
+    status(`${fresh.length} notes pasted at beat ${anchor} — drag to reposition, Ctrl+V again to repeat`);
+  }
+});
+
+// ── WebAudio preview synths (approximations of the numpy voices) ─────────────
+function pulseWave(actx, duty) {
+  const n = 16, re = new Float32Array(n), im = new Float32Array(n);
+  for (let h = 1; h < n; h++) re[h] = (2 / (Math.PI * h)) * Math.sin(Math.PI * h * duty);
+  return actx.createPeriodicWave(re, im, { disableNormalization: false });
+}
+function customVoice(actx, dest, P, freq, dur, amp, when) {
+  const g = actx.createGain();
+  let into = g;
+  if (P.lowpass) {
+    const flt = actx.createBiquadFilter();
+    flt.type = 'lowpass'; flt.frequency.value = P.lowpass;
+    flt.connect(g); into = flt;
+  }
+  g.connect(dest);
+  const atk = Math.max(P.attack ?? 0.005, 0.003), dec = Math.max(P.decay ?? 0.5, 0.02);
+  const sus = P.sustain ?? 0, rel = Math.max(P.release ?? 0.2, 0.03);
+  const env = g.gain; env.setValueAtTime(0.0001, when);
+  env.linearRampToValueAtTime(amp * 0.85, when + atk);
+  let stop;
+  if (sus > 0) {
+    env.setTargetAtTime(amp * 0.85 * sus, when + atk, dec);
+    env.setValueAtTime(amp * 0.85 * sus, when + dur);
+    env.exponentialRampToValueAtTime(0.0001, when + dur + rel);
+    stop = when + dur + rel + 0.15;
+  } else {
+    env.setTargetAtTime(0.0001, when + atk, dec);
+    stop = when + Math.min(4, dec * 5 + 0.3);
+  }
+  const o = actx.createOscillator();
+  if (P.wave === 'pulse25' || P.wave === 'pulse125')
+    o.setPeriodicWave(pulseWave(actx, P.wave === 'pulse25' ? 0.25 : 0.125));
+  else o.type = { saw: 'sawtooth' }[P.wave] || P.wave || 'square';
+  o.frequency.value = freq; o.connect(into);
+  (P.partials || []).forEach(pp => {
+    if (!pp.level) return;
+    const po = actx.createOscillator(), pg = actx.createGain();
+    po.type = 'sine'; po.frequency.value = freq * pp.mult;
+    pg.gain.setValueAtTime(pp.level, when);
+    pg.gain.setTargetAtTime(0.0001, when + 0.01, 1 / (pp.pdecay || 5));
+    po.connect(pg); pg.connect(into); po.start(when); po.stop(stop);
+  });
+  if (P.vibrato && P.vibrato.depth) {
+    const l = actx.createOscillator(), lg = actx.createGain();
+    l.frequency.value = P.vibrato.rate || 5;
+    lg.gain.value = freq * P.vibrato.depth / 100;
+    l.connect(lg); lg.connect(o.frequency);
+    l.start(when + (P.vibrato.delay || 0.1)); l.stop(stop);
+  }
+  if (P.fm && P.fm.index) {
+    const m = actx.createOscillator(), mg = actx.createGain();
+    m.frequency.value = freq * (P.fm.ratio || 2);
+    mg.gain.setValueAtTime(freq * P.fm.index, when);
+    mg.gain.setTargetAtTime(0.001, when, 1 / (P.fm.decay || 5));
+    m.connect(mg); mg.connect(o.frequency); m.start(when); m.stop(stop);
+  }
+  o.start(when); o.stop(stop);
+}
+function voice(actx, dest, instr, freq, dur, amp, when) {
+  const CI = (score && score.customInstruments || {})[instr];
+  if (CI) { customVoice(actx, dest, CI, freq, dur, amp, when); return; }
+  const g = actx.createGain();
+  let out = dest;
+  if (instr.startsWith('n64_')) {          // the N64 warmth: everything lowpassed
+    const flt = actx.createBiquadFilter();
+    flt.type = 'lowpass';
+    flt.frequency.value = { n64_bass: 1400, n64_strings: 1700, n64_guitar: 2200,
+                            n64_epiano: 2800, n64_marimba: 3000, n64_flute: 3200,
+                            n64_bell: 4000 }[instr] || 2500;
+    flt.connect(dest); out = flt;
+  }
+  g.connect(out);
+  const env = g.gain; env.setValueAtTime(0.0001, when);
+  const mk = type => { const o = actx.createOscillator();
+    if (typeof type === 'string') o.type = type; else o.setPeriodicWave(type);
+    o.frequency.value = freq; o.connect(g); o.start(when); return o; };
+  const mkP = (mult, lvl, decay) => {      // partial with its own gain envelope
+    const o = actx.createOscillator(), pg = actx.createGain();
+    o.type = 'sine'; o.frequency.value = freq * mult;
+    pg.gain.setValueAtTime(lvl, when);
+    pg.gain.setTargetAtTime(0.0001, when + 0.01, 1 / decay);
+    o.connect(pg); pg.connect(g); o.start(when); return o; };
+  let stopAt = when + dur + 0.4, o;
+  const gate = (a, rel) => { env.linearRampToValueAtTime(a, when + 0.01);
+    env.setValueAtTime(a, when + dur); env.exponentialRampToValueAtTime(0.0001, when + dur + rel); };
+  const plk = (a, k) => { env.linearRampToValueAtTime(a, when + 0.008);
+    env.setTargetAtTime(0.0001, when + 0.01, 1 / k); stopAt = when + Math.min(4, 5 / k + 0.3); };
+  switch (instr) {
+    case 'pulse125': o = mk(pulseWave(actx, 0.125)); gate(amp, 0.25); break;
+    case 'pulse25':  o = mk(pulseWave(actx, 0.25));  gate(amp, 0.25); break;
+    case 'square50': o = mk('square'); gate(amp * 0.8, 0.25); break;
+    case 'pluck25':  o = mk(pulseWave(actx, 0.25));  plk(amp, 6); break;
+    case 'pluck50':  o = mk('square'); plk(amp * 0.8, 6); break;
+    case 'triangle': o = mk('triangle'); gate(amp, 0.15); break;
+    case 'chipsine': o = mk('sine'); gate(amp * 1.2, 0.2); break;
+    case 'harp':     o = mk('sine'); plk(amp * 1.2, 1.6); mk('sine').frequency.value = freq * 2; break;
+    case 'piano':    o = mk('sine'); plk(amp * 1.2, 1.1); mk('sine').frequency.value = freq * 2; break;
+    case 'bell':     o = mk('sine'); plk(amp, 1.6); mk('sine').frequency.value = freq * 2.76; break;
+    case 'sinebass': o = mk('sine'); gate(amp * 1.3, 0.3); break;
+    case 'noise': {
+      const len = Math.floor(actx.sampleRate * 0.03), buf = actx.createBuffer(1, len, actx.sampleRate);
+      const d = buf.getChannelData(0); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / len * 6);
+      const s = actx.createBufferSource(); s.buffer = buf; s.connect(g);
+      env.setValueAtTime(amp, when); s.start(when); s.stop(when + 0.05); return;
+    }
+    case 'n64_epiano': o = mk('sine'); plk(amp * 1.3, 1.3);
+      mkP(3.98, 0.42, 4).stop(when + 2); break;
+    case 'n64_flute': o = mk('sine');
+      env.linearRampToValueAtTime(amp * 1.2, when + 0.06);
+      env.setValueAtTime(amp * 1.2, when + dur);
+      env.exponentialRampToValueAtTime(0.0001, when + dur + 0.15);
+      mkP(2, 0.22, 2).stop(when + dur + 0.3); break;
+    case 'n64_strings': o = mk('sawtooth');
+      env.linearRampToValueAtTime(amp * 0.5, when + 0.22);
+      env.setValueAtTime(amp * 0.5, when + dur);
+      env.linearRampToValueAtTime(0.0001, when + dur + 0.45);
+      { const o2 = actx.createOscillator(); o2.type = 'sawtooth';
+        o2.frequency.value = freq * 1.006; o2.connect(g);
+        o2.start(when); o2.stop(when + dur + 0.6); }
+      stopAt = when + dur + 0.6; break;
+    case 'n64_guitar': o = mk('sine'); plk(amp * 1.25, 2.2);
+      mkP(2.001, 0.45, 5).stop(when + 1.2); break;
+    case 'n64_bell': o = mk('sine'); plk(amp * 1.1, 2.2);
+      mkP(3.9, 0.5, 6).stop(when + 1.2); break;
+    case 'n64_bass': o = mk('sine');
+      env.linearRampToValueAtTime(amp * 1.4, when + 0.006);
+      env.setTargetAtTime(0.0001, when + Math.min(dur, 0.5), 0.25);
+      mkP(2, 0.3, 7).stop(when + 0.8); stopAt = when + dur + 0.6; break;
+    case 'n64_marimba': o = mk('sine'); plk(amp * 1.2, 7);
+      mkP(4, 0.4, 22).stop(when + 0.4); break;
+    default: o = mk('square'); gate(amp * 0.8, 0.25);
+  }
+  o.stop(stopAt);
+}
+function midiHz(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+function previewNote(t, n) {
+  if (!ac || ac.state === 'closed') ac = new AudioContext();
+  voice(ac, ac.destination, t.instrument, midiHz(n.m + (t.octave || 0) * 12),
+        0.4, (n.v || 0.8) * (t.gain || 1) * 0.12, ac.currentTime);
+}
+// ── playhead: the vertical line riding the grid during playback ─────────────
+let rafId = null;
+function startPlayhead(beatFn) {
+  const ph = $('playhead'), wrap = $('rollwrap');
+  ph.style.height = roll.height + 'px';
+  ph.style.display = 'block';
+  const tick = () => {
+    if (!playing || !ac) return;
+    const x = Math.max(0, beatFn()) * 4 * CW;
+    ph.style.left = x + 'px';
+    if (x > wrap.scrollLeft + wrap.clientWidth * 0.75 || x < wrap.scrollLeft)
+      wrap.scrollLeft = Math.max(0, x - wrap.clientWidth * 0.4);
+    rafId = requestAnimationFrame(tick);
+  };
+  rafId = requestAnimationFrame(tick);
+}
+// ── LIVE playback: a rolling scheduler reads the score AS IT IS every 100ms;
+// each track plays through a live mixer chain (voice -> trackGain -> panner
+// -> direct + reverb send), so INSTRUMENT, MUTE, DRY, GAIN and PAN all act on
+// sound that is already playing — a real console, not a bounce.
+let sched = null;
+function makeReverb(actx) {
+  const secs = 1.3, n = Math.floor(secs * actx.sampleRate);
+  const buf = actx.createBuffer(2, n, actx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = buf.getChannelData(c);
+    let lp = 0;
+    for (let i = 0; i < n; i++) {
+      const x = (Math.random() * 2 - 1) * Math.exp(-i / (actx.sampleRate * 0.28));
+      lp += 0.42 * (x - lp);              // darken the tail like the renderer
+      d[i] = lp;
+    }
+  }
+  const cv = actx.createConvolver(); cv.buffer = buf;
+  cv.connect(actx.destination);
+  return cv;
+}
+$('play').onclick = () => {
+  if (playing) return;
+  if (!ac || ac.state === 'closed') ac = new AudioContext();
+  playing = true; $('play').classList.add('on');
+  // the BPM box is the CURRENT song's tempo — it must never write the global
+  // default, or switching songs would silently retempo every other one.
+  mv().bpm = parseFloat($('bpm').value) || mv().bpm || score.bpm;
+  const spb = 60 / mv().bpm;
+  const mvIdx = mvi;
+  const startBeat = playStartBeat;          // set by ruler click (or from-bar)
+  const endBeat = (score.movements[mvIdx].bars || 50) * 4;
+  let t0 = ac.currentTime + 0.15;
+  const verb = makeReverb(ac);
+  const chains = new Map();
+  let done = new Set();
+  const LOOK = 0.30;                       // seconds of lookahead
+  const tickS = () => {
+    if (!playing) return;
+    const now = ac.currentTime;
+    if (now > t0 + (endBeat - startBeat) * spb) {
+      if ($('loop').checked) { t0 += (endBeat - startBeat) * spb; done = new Set(); }
+      else { $('stop').onclick(); return; }
+    }
+    const cur = startBeat + (now - t0) / spb;
+    const horizon = cur + LOOK / spb;
+    score.movements[mvIdx].tracks.forEach((t, ti) => {
+      let c = chains.get(ti);
+      if (!c) {
+        c = { g: ac.createGain(), p: ac.createStereoPanner(), s: ac.createGain() };
+        c.g.connect(c.p); c.p.connect(ac.destination);
+        c.p.connect(c.s); c.s.connect(verb);
+        chains.set(ti, c);
+      }
+      // the LIVE mixer: these touch sound that is ALREADY ringing
+      c.g.gain.value = t.mute ? 0 : (t.gain ?? 1);
+      c.p.pan.value = ((t.pan ?? 0.5) - 0.5) * 1.6;
+      c.s.gain.value = t.dry ? 0.10 : 0.30;
+      t.notes.forEach(n => {
+        if (n.b >= Math.max(cur - 0.02, startBeat) && n.b < horizon && !done.has(n)) {
+          done.add(n);
+          voice(ac, c.g, t.instrument, midiHz(n.m + (t.octave || 0) * 12),
+                n.d * spb, (n.v || 0.8) * 0.10,
+                t0 + (n.b - startBeat) * spb);
+        }
+      });
+    });
+  };
+  sched = setInterval(tickS, 100); tickS();
+  startPlayhead(() => startBeat + (ac.currentTime - t0) / spb);
+  status(`LIVE — ${mv().name} from bar ${$('frombar').value}` +
+         ($('loop').checked ? ', looping. Tweak anything; it applies as it plays.' : ''));
+};
+$('stop').onclick = () => {
+  playing = false; $('play').classList.remove('on');
+  clearInterval(sched);
+  cancelAnimationFrame(rafId);
+  $('playhead').style.display = 'none';
+  if (ac) { ac.close(); ac = null; }
+  status('stopped');
+};
+// ── instrument designer ──────────────────────────────────────────────────
+let pendingTrack = null;   // track index waiting for a "+ new" instrument
+function openDesignerFor(trackIdx) {
+  pendingTrack = trackIdx;
+  $('ipanel').style.display = 'block';
+  ciRefresh();
+  // suggest a free name
+  const base = 'custom'; let n = 1;
+  const taken = score.customInstruments || {};
+  while (taken[base + n]) n++;
+  $('ci_name').value = base + n;
+  $('ci_name').focus(); $('ci_name').select();
+  status(`new instrument for track "${mv().tracks[trackIdx].name}" — tweak, Test, Save instrument`);
+}
+function ciPatch() {
+  const v = id => parseFloat($(id).value) || 0;
+  return {
+    wave: $('ci_wave').value, attack: v('ci_atk'), decay: v('ci_dec'),
+    sustain: v('ci_sus'), release: v('ci_rel'),
+    lowpass: v('ci_lp') || 0, crush: v('ci_cr') || 0,
+    vibrato: { rate: v('ci_vr'), depth: v('ci_vd'), delay: v('ci_vy') },
+    fm: { ratio: v('ci_fr'), index: v('ci_fi'), decay: v('ci_fd') },
+    partials: [ { mult: v('ci_p1m'), level: v('ci_p1l'), pdecay: 5 },
+                { mult: v('ci_p2m'), level: v('ci_p2l'), pdecay: 8 } ],
+  };
+}
+function ciRefresh() {
+  const names = Object.keys(score.customInstruments || {});
+  $('ci_pick').innerHTML = '<option value="">— new —</option>' +
+    names.map(n => `<option>${n}</option>`).join('');
+}
+$('idesign').onclick = () => {
+  const p = $('ipanel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  if (p.style.display === 'block') { ciRefresh();
+    status('instrument designer — set values, Test, then Save instrument; it appears in every track dropdown'); }
+};
+$('ci_pick').onchange = () => {
+  const P = (score.customInstruments || {})[$('ci_pick').value];
+  if (!P) return;
+  $('ci_name').value = $('ci_pick').value;
+  $('ci_wave').value = P.wave || 'square';
+  $('ci_atk').value = P.attack ?? 0.005; $('ci_dec').value = P.decay ?? 0.5;
+  $('ci_sus').value = P.sustain ?? 0;   $('ci_rel').value = P.release ?? 0.2;
+  $('ci_lp').value = P.lowpass || 0;    $('ci_cr').value = P.crush || 0;
+  $('ci_vr').value = P.vibrato?.rate || 0; $('ci_vd').value = P.vibrato?.depth || 0;
+  $('ci_vy').value = P.vibrato?.delay ?? 0.1;
+  $('ci_fr').value = P.fm?.ratio || 2;  $('ci_fi').value = P.fm?.index || 0;
+  $('ci_fd').value = P.fm?.decay || 5;
+  $('ci_p1m').value = P.partials?.[0]?.mult || 2; $('ci_p1l').value = P.partials?.[0]?.level || 0;
+  $('ci_p2m').value = P.partials?.[1]?.mult || 3; $('ci_p2l').value = P.partials?.[1]?.level || 0;
+};
+$('ci_test').onclick = () => {
+  if (!ac || ac.state === 'closed') ac = new AudioContext();
+  const P = ciPatch();
+  customVoice(ac, ac.destination, P, 220, 0.8, 0.14, ac.currentTime);
+  customVoice(ac, ac.destination, P, 440, 0.8, 0.12, ac.currentTime + 0.9);
+};
+$('ci_save').onclick = () => {
+  const name = ($('ci_name').value || '').trim();
+  if (!name) { status('give the instrument a name first'); return; }
+  score.customInstruments = score.customInstruments || {};
+  score.customInstruments[name] = ciPatch();
+  if (pendingTrack !== null && mv().tracks[pendingTrack]) {
+    mv().tracks[pendingTrack].instrument = name;   // assign to the requesting track
+    status(`instrument "${name}" saved + assigned to "${mv().tracks[pendingTrack].name}" — lives in your browser session`);
+    pendingTrack = null;
+  } else {
+    status(`instrument "${name}" saved — pick it on any track — lives in your browser session`);
+  }
+  ciRefresh(); buildTracks();
+};
+</script></body></html>
