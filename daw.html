@@ -46,6 +46,9 @@ label { color:var(--dim); font-size:11px; }
     <option>1.5</option><option>2</option><option>3</option><option>4</option></select> beats</label>
   <label>velocity <input type="number" id="nvel" value="0.8" min="0.05" max="1" step="0.05"></label>
   <button id="idesign">&#9881; Instruments</button>
+  <button id="exwav" title="render this movement to a .wav you can keep">Export WAV</button>
+  <button id="exmid" title="this movement as a standard .mid - open it in any DAW">Export MIDI</button>
+  <button id="exjson" title="the whole score, every movement, as JSON">Export Score</button>
   <span style="margin-left:auto;font-size:11px;color:var(--dim)">the real tool the suite was written in &mdash; play, zoom, add notes; edits stay in your browser &middot; <a href="index.html" style="color:var(--acc);text-decoration:none">&larr; pixelfall.net</a></span>
 </header>
 <div id="ipanel" style="display:none; padding:8px 12px; background:#10151d; border-bottom:1px solid #000000;">
@@ -768,5 +771,113 @@ $('ci_save').onclick = () => {
     status(`instrument "${name}" saved — pick it on any track — lives in your browser session`);
   }
   ciRefresh(); buildTracks();
+};
+
+// ── EXPORTS: what you make here leaves with you ─────────────────────────────
+function dlBlob(name, blob) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+function safeName(x) {
+  return String(x || 'movement').replace(/[^a-z0-9]+/gi, '_')
+    .replace(/^_+|_+$/g, '').toLowerCase() || 'movement';
+}
+
+$('exjson').onclick = () => {
+  dlBlob('pixelfall_score.json',
+    new Blob([JSON.stringify(score, null, 1)], { type: 'application/json' }));
+  status('score exported - every movement, every note, yours.');
+};
+
+$('exmid').onclick = () => {
+  const m = mv(); if (!m) return;
+  const PPQ = 480;
+  const vlq = n => { const b = [n & 0x7f]; while (n >>= 7) b.unshift((n & 0x7f) | 0x80); return b; };
+  const trk = bytes => [0x4D, 0x54, 0x72, 0x6B,
+    (bytes.length >> 24) & 255, (bytes.length >> 16) & 255,
+    (bytes.length >> 8) & 255, bytes.length & 255, ...bytes];
+  const chunks = [];
+  const bpm = m.bpm || score.bpm || 96;
+  const us = Math.round(60000000 / bpm);
+  chunks.push(trk([0, 0xFF, 0x51, 0x03, (us >> 16) & 255, (us >> 8) & 255, us & 255,
+                   0, 0xFF, 0x58, 0x04, 4, 2, 24, 8,
+                   0, 0xFF, 0x2F, 0x00]));
+  m.tracks.forEach((t, ti) => {
+    let ch = ti % 16; if (ch === 9) ch = 15;      // dodge the GM drum channel
+    const ev = [];
+    const nm = Array.from(new TextEncoder().encode((t.name || 'track ' + (ti + 1)).slice(0, 60)));
+    ev.push({ tick: 0, bytes: [0xFF, 0x03, ...vlq(nm.length), ...nm] });
+    t.notes.forEach(n => {
+      const p = Math.max(0, Math.min(127, Math.round(n.m + (t.octave || 0) * 12)));
+      const v = Math.max(1, Math.min(127, Math.round((n.v == null ? 0.8 : n.v) * 127)));
+      ev.push({ tick: Math.round(n.b * PPQ), bytes: [0x90 | ch, p, v] });
+      ev.push({ tick: Math.round((n.b + n.d) * PPQ), bytes: [0x80 | ch, p, 0] });
+    });
+    ev.sort((a, b) => a.tick - b.tick);
+    const out = []; let last = 0;
+    ev.forEach(e => { out.push(...vlq(e.tick - last), ...e.bytes); last = e.tick; });
+    out.push(0, 0xFF, 0x2F, 0x00);
+    chunks.push(trk(out));
+  });
+  const ntrk = 1 + m.tracks.length;
+  const bytes = [0x4D, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 1,
+                 (ntrk >> 8) & 255, ntrk & 255, (PPQ >> 8) & 255, PPQ & 255];
+  chunks.forEach(c => { for (const b of c) bytes.push(b); });
+  dlBlob('pixelfall_' + safeName(m.name) + '.mid',
+    new Blob([new Uint8Array(bytes)], { type: 'audio/midi' }));
+  status('"' + (m.name || 'movement') + '" exported as MIDI - open it in any DAW.');
+};
+
+function wavBlob(buf) {
+  const n = buf.length, ch = 2, sr = buf.sampleRate, total = 44 + n * ch * 2;
+  const ab = new ArrayBuffer(total), v = new DataView(ab);
+  const w = (o, str) => { for (let i = 0; i < str.length; i++) v.setUint8(o + i, str.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, total - 8, true); w(8, 'WAVEfmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, ch, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * ch * 2, true);
+  v.setUint16(32, ch * 2, true); v.setUint16(34, 16, true);
+  w(36, 'data'); v.setUint32(40, n * ch * 2, true);
+  const L = buf.getChannelData(0), R = buf.getChannelData(1);
+  let o = 44;
+  for (let i = 0; i < n; i++) {
+    v.setInt16(o, Math.max(-1, Math.min(1, L[i])) * 0x7FFF, true); o += 2;
+    v.setInt16(o, Math.max(-1, Math.min(1, R[i])) * 0x7FFF, true); o += 2;
+  }
+  return new Blob([ab], { type: 'audio/wav' });
+}
+
+$('exwav').onclick = async () => {
+  const m = mv(); if (!m) return;
+  const btn = $('exwav');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  try {
+    m.bpm = parseFloat($('bpm').value) || m.bpm || score.bpm || 96;
+    const spb = 60 / m.bpm;
+    const secs = (m.bars || 50) * 4 * spb + 2.5;
+    status('rendering "' + (m.name || 'movement') + '" offline... (' + Math.round(secs) + 's of audio)');
+    const oc = new OfflineAudioContext(2, Math.ceil(secs * 44100), 44100);
+    const verb = makeReverb(oc);
+    // the exact live mixer chain, rebuilt offline: voice -> gain -> pan -> out + send
+    m.tracks.forEach(t => {
+      if (t.mute) return;
+      const g = oc.createGain(), p = oc.createStereoPanner(), snd = oc.createGain();
+      g.connect(p); p.connect(oc.destination); p.connect(snd); snd.connect(verb);
+      g.gain.value = t.gain == null ? 1 : t.gain;
+      p.pan.value = ((t.pan == null ? 0.5 : t.pan) - 0.5) * 1.6;
+      snd.gain.value = t.dry ? 0.10 : 0.30;
+      t.notes.forEach(n => voice(oc, g, t.instrument,
+        midiHz(n.m + (t.octave || 0) * 12), n.d * spb,
+        (n.v || 0.8) * 0.10, 0.1 + n.b * spb));
+    });
+    const buf = await oc.startRendering();
+    dlBlob('pixelfall_' + safeName(m.name) + '.wav', wavBlob(buf));
+    status('WAV exported - your mix of "' + (m.name || 'movement') + '", mutes and edits included.');
+  } catch (err) {
+    status('render failed: ' + err.message);
+  } finally {
+    btn.disabled = false;
+  }
 };
 </script></body></html>
