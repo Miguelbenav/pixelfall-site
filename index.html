@@ -312,7 +312,7 @@
           Nights are darker, deeper, and worth surviving — tame a horse, raise crops, brew elixirs,
           build the base that outlasts it all.</p>
       </div>
-      <div class="pic"><img src="assets/shots/07_sunset_fire.png" alt="Sunset over a burning canyon" /></div>
+      <div class="pic"><img src="assets/shots/14_sunken_dune_void_swarm.png" alt="A void swarm hovering over the sunken dunes" /></div>
     </div>
 
     <div class="feature-row">
@@ -364,17 +364,7 @@
     <h2 class="section-title" data-mat="grass">The World Is Inhabited</h2>
     <p class="section-sub">Horses to tame, camels to caravan, jaguars that disagree with both,
       and phantoms that only come out when the light dies.</p>
-    <div class="beast-strip">
-      <img src="assets/bestiary/deer.png" alt="Deer" title="Deer" />
-      <img src="assets/bestiary/camel.png" alt="Camel" title="Camel" />
-      <img src="assets/bestiary/jaguar.png" alt="Jaguar" title="Jaguar" />
-      <img src="assets/bestiary/panther.png" alt="Panther" title="Panther" />
-      <img src="assets/bestiary/scorpion.png" alt="Scorpion" title="Scorpion" />
-      <img src="assets/bestiary/phantom.png" alt="Phantom" title="Phantom" />
-      <img src="assets/bestiary/meteorite_golem.png" alt="Meteorite Golem" title="Meteorite Golem" />
-      <img src="assets/bestiary/alien_drone.png" alt="Alien Drone" title="Alien Drone" />
-    </div>
-    <div style="text-align:center"><a class="btn ghost" href="bestiary.html">OPEN THE FULL BESTIARY →</a></div>
+    <div style="text-align:center"><a class="btn ghost" href="bestiary.html">OPEN THE FULL BESTIARY</a></div>
   </section>
 
   <!-- ── MUSIC / PIXELDAW ─────────────────────────────────────────── -->
@@ -733,29 +723,65 @@
       });
     });
 
-    // pictures fall off the wall on hover, then re-hang
+    // ── pictures fall off the wall: gravity, collision, bounce, re-hang ──
     document.querySelectorAll('.feature-row .pic img, .shots-grid img').forEach(im => {
-      let fallen = false;
+      let busy = false;
       im.addEventListener('mouseenter', () => {
-        if (fallen) return;
-        fallen = true;
+        if (busy) return;
+        busy = true;
         const r = im.getBoundingClientRect();
         let dist = 90;
         const row = im.closest('.feature-row');
-        if (row && row.nextElementSibling) {
-          dist = row.nextElementSibling.getBoundingClientRect().top - r.bottom + 10;
-        } else if (im.closest('.shots-grid')) {
-          dist = 40;
+        const grid = im.closest('.shots-grid');
+        if (row) {
+          const next = row.nextElementSibling;
+          dist = next ? next.getBoundingClientRect().top - r.bottom + 10
+                      : row.parentElement.getBoundingClientRect().bottom - r.bottom - 8;
+        } else if (grid) {
+          // collide with the tile actually underneath this one
+          let best = Infinity;
+          grid.querySelectorAll('img').forEach(o => {
+            if (o === im) return;
+            const q = o.getBoundingClientRect();
+            if (q.top > r.bottom - 4 && q.left < r.right && q.right > r.left)
+              best = Math.min(best, q.top - r.bottom);
+          });
+          dist = isFinite(best) ? best + 6
+                                : grid.getBoundingClientRect().bottom - r.bottom + 30;
         }
-        dist = Math.max(26, Math.min(dist, 220));
-        const rot = (4 + Math.random() * 8) * (Math.random() < 0.5 ? -1 : 1);
+        dist = Math.max(20, Math.min(dist, 280));
+        const rot = (4 + Math.random() * 9) * (Math.random() < 0.5 ? -1 : 1);
         im.style.transformOrigin = rot < 0 ? 'bottom left' : 'bottom right';
         im.classList.add('fallen');
-        im.style.transform = 'translateY(' + dist + 'px) rotate(' + rot + 'deg)';
-        setTimeout(() => {
+        im.style.transition = 'none';
+        let y = 0, v = 0, t0 = null, bounces = 0;
+        const g = 2800;                       // px/s^2 — a heavy frame
+        const step = ts => {
+          if (t0 === null) t0 = ts;
+          const dt = Math.min(0.032, (ts - t0) / 1000);
+          t0 = ts;
+          v += g * dt;
+          y += v * dt;
+          if (y >= dist) {
+            y = dist;
+            if (bounces < 2 && v > 170) { v = -v * 0.34; bounces++; }
+            else v = 0;
+          }
+          const a = rot * Math.min(1, y / dist);
+          im.style.transform = 'translateY(' + y.toFixed(1) + 'px) rotate(' + a.toFixed(2) + 'deg)';
+          if (y < dist || v !== 0) requestAnimationFrame(step);
+          else setTimeout(rehang, 4500);      // it lies there a while, then...
+        };
+        const rehang = () => {
+          im.style.transition = 'transform .9s cubic-bezier(.3, 1.2, .5, 1)';
           im.style.transform = '';
-          setTimeout(() => { im.classList.remove('fallen'); fallen = false; }, 950);
-        }, 4200);
+          setTimeout(() => {
+            im.classList.remove('fallen');
+            im.style.transition = 'none';
+            busy = false;
+          }, 950);
+        };
+        requestAnimationFrame(step);
       });
     });
   </script>

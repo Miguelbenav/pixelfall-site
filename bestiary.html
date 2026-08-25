@@ -314,6 +314,12 @@ body { letter-spacing:.2px; }
 canvas.title-sim { display:block; margin:0 auto; image-rendering:pixelated;
   cursor:crosshair; max-width:100%; }
 .sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+
+/* -- the index's starry sky, here too ------------------------------- */
+#starfield { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+.star { position:absolute; background:#fff; animation:twinkle var(--d,3s) ease-in-out infinite alternate; }
+@keyframes twinkle { from { opacity:var(--a1,.15); } to { opacity:var(--a2,.7); } }
+.wrap { position:relative; z-index:1; }
 </style>
 
 <button class="toggle" id="themeToggle" aria-label="Toggle light and dark">◐ Theme</button>
@@ -325,6 +331,7 @@ canvas.title-sim { display:block; margin:0 auto; image-rendering:pixelated;
 </div>
 <button id="toTop" title="Back to top" aria-label="Back to top">&#8593;</button>
 
+<div id="starfield"></div>
 <div class="wrap">
   <header class="hero">
     <p class="kicker">PIXELFALL · Field Guide</p>
@@ -1024,5 +1031,15 @@ const MATS = {
     clearTimeout(rsT); rsT = setTimeout(() => sims.forEach(s => s.build()), 250);
   });
 });
+
+const sf = document.getElementById('starfield');
+for (let i = 0; i < 90; i++) {
+  const st = document.createElement('div');
+  st.className = 'star';
+  const sz = Math.random() < .8 ? 2 : 3;
+  st.style.cssText = 'left:' + (Math.random() * 100) + '%;top:' + (Math.random() * 100) + '%;width:' + sz + 'px;height:' + sz + 'px;' +
+    '--d:' + (2 + Math.random() * 3).toFixed(1) + 's;--a1:' + (.05 + Math.random() * .2).toFixed(2) + ';--a2:' + (.4 + Math.random() * .5).toFixed(2);
+  sf.appendChild(st);
+}
 </script>
 </body></html>
