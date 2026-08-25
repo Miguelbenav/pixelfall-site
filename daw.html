@@ -1,5 +1,5 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>PIXELDAW — The Mosslight Suite</title>
+<html><head><meta charset="utf-8"><title>PIXELDAW</title>
 <style>
 @font-face { font-family:'Minecraft'; src:url('assets/Minecraft.ttf') format('truetype'); }
 :root { --bg:#171a21; --panel:#1b2838; --ink:#c7d5e0; --dim:#8f98a0; --acc:#f0a500; --acc2:#66c0f4; }
@@ -29,10 +29,27 @@ canvas { display:block; image-rendering:pixelated; }
 #status { padding:5px 12px; color:var(--dim); font-size:12px; background:#10151d;
   border-top:1px solid #000000; white-space:pre-wrap; }
 label { color:var(--dim); font-size:11px; }
+
+#renderov { position:fixed; inset:0; z-index:400; background:rgba(13,16,22,.9);
+  display:none; align-items:center; justify-content:center; flex-direction:column; gap:18px; }
+#renderov.show { display:flex; }
+#renderov img { width:64px; image-rendering:pixelated; animation:rospin 1.6s linear infinite; }
+@keyframes rospin { to { transform:rotateY(360deg); } }
+#renderov .rmsg { color:var(--ink); font-size:15px; letter-spacing:1px; }
+#renderov .rbarwrap { width:min(420px,80vw); height:18px; background:#10151d;
+  border:2px solid #000; }
+#renderov .rbar { height:100%; width:0%; background:linear-gradient(180deg,#ffd166,var(--acc));
+  transition:width .3s linear; }
+#renderov .rhint { color:var(--dim); font-size:11px; }
 </style></head><body>
+<div id="renderov"><img src="assets/icon_heart.png" alt="">
+  <div class="rmsg" id="rmsg">RENDERING&hellip;</div>
+  <div class="rbarwrap"><div class="rbar" id="rbar"></div></div>
+  <div class="rhint">bouncing every note through the synth &mdash; long movements take a couple of minutes</div>
+</div>
 <header>
   <a href="index.html" title="back to PIXELFALL"><img src="assets/icon_heart.png" style="height:26px;display:block;image-rendering:pixelated"></a>
-  <h1>PIXELDAW &mdash; THE MOSSLIGHT SUITE</h1>
+  <h1>PIXELDAW</h1>
   <button id="play">&#9654; Play</button>
   <button id="stop">&#9632; Stop</button>
   <button id="zout" title="zoom out (Ctrl+scroll)">&#128269;&minus;</button>
@@ -857,7 +874,21 @@ $('exwav').onclick = async () => {
     const spb = 60 / m.bpm;
     const secs = (m.bars || 50) * 4 * spb + 2.5;
     status('rendering "' + (m.name || 'movement') + '" offline... (' + Math.round(secs) + 's of audio)');
+    const rov = document.getElementById('renderov'), rbar = document.getElementById('rbar'),
+          rmsg = document.getElementById('rmsg');
+    rov.classList.add('show'); rbar.style.width = '0%';
+    rmsg.textContent = 'RENDERING “' + (m.name || 'movement').toUpperCase() + '” — 0%';
     const oc = new OfflineAudioContext(2, Math.ceil(secs * 44100), 44100);
+    // real progress: suspend checkpoints every ~1% of the timeline
+    const stepS = Math.max(0.5, secs / 100);
+    for (let tS = stepS; tS < secs; tS += stepS) {
+      oc.suspend(tS).then(() => {
+        const pct = Math.min(99, Math.round(tS / secs * 100));
+        rbar.style.width = pct + '%';
+        rmsg.textContent = 'RENDERING “' + (m.name || 'movement').toUpperCase() + '” — ' + pct + '%';
+        oc.resume();
+      }).catch(() => {});
+    }
     const verb = makeReverb(oc);
     // the exact live mixer chain, rebuilt offline: voice -> gain -> pan -> out + send
     m.tracks.forEach(t => {
@@ -872,12 +903,14 @@ $('exwav').onclick = async () => {
         (n.v || 0.8) * 0.10, 0.1 + n.b * spb));
     });
     const buf = await oc.startRendering();
+    rbar.style.width = '100%';
     dlBlob('pixelfall_' + safeName(m.name) + '.wav', wavBlob(buf));
     status('WAV exported - your mix of "' + (m.name || 'movement') + '", mutes and edits included.');
   } catch (err) {
     status('render failed: ' + err.message);
   } finally {
     btn.disabled = false;
+    document.getElementById('renderov').classList.remove('show');
   }
 };
 </script></body></html>
