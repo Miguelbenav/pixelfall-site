@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>PIXELFALL — A Living Pixel Sandbox</title>
+  <meta name="description"
+    content="PIXELFALL — a living pixel sandbox where every grain simulates. Dig to the abyss, sail past the clouds, face seven sim-bosses, and mend the heart of your world. Buy direct or wishlist on Steam." />
+  <meta property="og:title" content="PIXELFALL" />
+  <meta property="og:description" content="Every grain of this world is real. Seven Keepers guard the amulets." />
+  <meta property="og:image" content="assets/shots/16_title_vista.png" />
+  <link rel="icon" href="assets/icon_heart.png" />
+  <style>
+    /* ══════════════════════════════════════════════════════════════════
+       CONFIG — set these when accounts are ready:
+       1) itch.io: create the PixelFall page, then Distribute > Embed game
+          and put the numeric ID in the iframe at #buy (search "ITCH-ID").
+       2) Steam page: link already points at AppID 4899610.
+       ══════════════════════════════════════════════════════════════════ */
+    @font-face {
+      font-family: 'Minecraft';
+      src: url('assets/Minecraft.ttf') format('truetype');
+    }
+
+    *, *::before, *::after {
+      font-family: 'Minecraft', monospace !important;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --steam-dark: #171a21;
+      --steam-mid: #1b2838;
+      --steam-panel: #2a475e;
+      --blue: #66c0f4;
+      --text: #c7d5e0;
+      --dim: #8f98a0;
+      --amber: #f0a500;
+      --amber-light: #ffd166;
+      --title-blue: #cdeff7;
+      --stroke-navy: #122c38;
+      --leaf: #8fce6a;
+      --magma: #d64b1d;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--steam-mid);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    img, video { image-rendering: pixelated; }
+
+    #starfield { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .star { position: absolute; background: #fff; animation: twinkle var(--d, 3s) ease-in-out infinite alternate; }
+    @keyframes twinkle { from { opacity: var(--a1, .15); } to { opacity: var(--a2, .7); } }
+
+    /* ── Kenney 9-slice panels ── */
+    .k-wood {
+      border: 14px solid transparent;
+      border-image: url('assets/kenney/panel_wood.png') 10 fill round;
+      image-rendering: pixelated;
+      color: #f4e5c3;
+    }
+    .k-slate {
+      border: 14px solid transparent;
+      border-image: url('assets/kenney/panel_slate.png') 10 fill round;
+      image-rendering: pixelated;
+      color: #dfe7f2;
+    }
+    .k-dark {
+      border: 14px solid transparent;
+      border-image: url('assets/kenney/panel_dark.png') 10 fill round;
+      image-rendering: pixelated;
+    }
+
+    /* ── nav ── */
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; gap: 28px;
+      padding: 10px 28px;
+      background: rgba(23, 26, 33, .92);
+      border-bottom: 2px solid #000;
+    }
+    header img.mark { height: 34px; }
+    header nav { display: flex; gap: 22px; flex: 1; }
+    header a { color: var(--dim); text-decoration: none; font-size: 15px; letter-spacing: .5px; }
+    header a:hover { color: var(--blue); }
+    .btn {
+      display: inline-block; cursor: pointer; text-decoration: none;
+      padding: 12px 26px; font-size: 16px; letter-spacing: 1px;
+      color: #2b1f0a; background: linear-gradient(180deg, var(--amber-light), var(--amber));
+      border: 2px solid #000; box-shadow: 0 4px 0 #000;
+      transition: transform .08s;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #000; }
+    .btn.ghost {
+      background: var(--steam-panel); color: var(--text);
+    }
+
+    section { position: relative; z-index: 1; padding: 90px 6vw; }
+    .section-title {
+      font-size: clamp(26px, 3.4vw, 44px);
+      color: var(--title-blue);
+      text-shadow: 3px 3px 0 var(--stroke-navy);
+      margin-bottom: 14px; text-align: center;
+    }
+    .section-sub { text-align: center; color: var(--dim); max-width: 760px; margin: 0 auto 48px; font-size: 17px; line-height: 1.55; }
+
+    /* ── hero ── */
+    #hero {
+      min-height: 92vh; padding: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: url('assets/hero_biomes.png') center/cover no-repeat;
+      border-bottom: 4px solid #000;
+    }
+    #hero .shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(23,26,33,.25), rgba(23,26,33,.78) 82%); }
+    #hero img.logo { position: relative; width: min(760px, 82vw); filter: drop-shadow(0 10px 24px rgba(0,0,0,.6)); }
+    #hero p.tag {
+      position: relative; margin-top: 6px; font-size: clamp(15px, 1.9vw, 22px);
+      color: var(--amber-light); text-shadow: 2px 2px 0 #000; letter-spacing: 2px;
+    }
+    #hero .cta { position: relative; margin-top: 34px; display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
+    #hero .scroll-hint { position: absolute; bottom: 18px; color: var(--dim); font-size: 13px; animation: bob 1.6s ease-in-out infinite alternate; }
+    @keyframes bob { to { transform: translateY(6px); } }
+
+    /* ── features ── */
+    .feature-row {
+      display: flex; gap: 40px; align-items: center; max-width: 1180px;
+      margin: 0 auto 70px; flex-wrap: wrap;
+    }
+    .feature-row:nth-child(even) { flex-direction: row-reverse; }
+    .feature-row .txt { flex: 1 1 340px; }
+    .feature-row .txt h3 { color: var(--blue); font-size: 24px; margin-bottom: 12px; text-shadow: 2px 2px 0 #000; }
+    .feature-row .txt p { line-height: 1.65; font-size: 16px; color: var(--text); }
+    .feature-row .pic { flex: 1 1 480px; }
+    .feature-row .pic img { width: 100%; display: block; border: 3px solid #000; box-shadow: 0 8px 0 rgba(0,0,0,.45); }
+
+    /* ── keepers ── */
+    #keepers { background: linear-gradient(180deg, var(--steam-mid), #10151d 60%, var(--steam-mid)); }
+    .amulet-row { display: flex; gap: clamp(10px, 3vw, 34px); justify-content: center; flex-wrap: wrap; margin: 40px 0 18px; }
+    .amulet-row .am { text-align: center; }
+    .amulet-row img { width: clamp(56px, 7vw, 96px); animation: bob 2.2s ease-in-out infinite alternate; }
+    .amulet-row .am:nth-child(2n) img { animation-delay: .5s; }
+    .amulet-row .am:nth-child(3n) img { animation-delay: 1s; }
+    .amulet-row span { display: block; margin-top: 8px; color: var(--dim); font-size: 12px; }
+
+    /* ── screenshots ── */
+    .shots-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 14px; max-width: 1280px; margin: 0 auto;
+    }
+    .shots-grid img {
+      width: 100%; display: block; border: 3px solid #000; cursor: pointer;
+      transition: transform .12s;
+    }
+    .shots-grid img:hover { transform: scale(1.025); }
+    #lightbox {
+      position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.92);
+      display: none; align-items: center; justify-content: center; cursor: zoom-out;
+    }
+    #lightbox img { max-width: 94vw; max-height: 92vh; border: 4px solid #000; }
+
+    /* ── bestiary teaser ── */
+    .beast-strip { display: flex; gap: 26px; justify-content: center; flex-wrap: wrap; margin: 34px 0; }
+    .beast-strip img { width: 72px; height: 72px; object-fit: contain; animation: bob 1.8s ease-in-out infinite alternate; }
+    .beast-strip img:nth-child(2n) { animation-delay: .4s; }
+    .beast-strip img:nth-child(3n) { animation-delay: .9s; }
+
+    /* ── buy ── */
+    #buy { background: url('assets/mosaic.png') center/cover no-repeat; border-top: 4px solid #000; border-bottom: 4px solid #000; }
+    #buy .shade { position: absolute; inset: 0; background: rgba(16, 19, 26, .82); }
+    #buy .inner { position: relative; max-width: 980px; margin: 0 auto; text-align: center; }
+    .buy-cols { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-top: 40px; }
+    .buy-card { flex: 1 1 340px; max-width: 440px; padding: 30px 26px; text-align: center; }
+    .buy-card h3 { font-size: 22px; margin-bottom: 10px; }
+    .buy-card p { font-size: 14px; line-height: 1.6; margin-bottom: 18px; }
+    .buy-card .price { font-size: 34px; color: var(--amber-light); text-shadow: 2px 2px 0 #000; display: block; margin-bottom: 14px; }
+    .itch-frame { width: 100%; max-width: 552px; height: 167px; border: 0; margin: 0 auto; display: block; }
+    .note { font-size: 12px; color: var(--dim); margin-top: 16px; }
+
+    footer {
+      position: relative; z-index: 1; padding: 44px 6vw; text-align: center;
+      background: var(--steam-dark); border-top: 2px solid #000;
+      color: var(--dim); font-size: 13px; line-height: 1.8;
+    }
+    footer a { color: var(--blue); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      header nav { display: none; }
+      section { padding: 60px 5vw; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="starfield"></div>
+
+  <header>
+    <img class="mark" src="assets/icon_heart.png" alt="PIXELFALL" />
+    <nav>
+      <a href="#world">The World</a>
+      <a href="#keepers">The Keepers</a>
+      <a href="#shots">Screenshots</a>
+      <a href="bestiary.html">Bestiary</a>
+    </nav>
+    <a class="btn" href="#buy">BUY $9.99</a>
+  </header>
+
+  <!-- ── HERO ─────────────────────────────────────────────────────── -->
+  <section id="hero">
+    <div class="shade"></div>
+    <img class="logo" src="assets/logo.png" alt="PIXELFALL — the letters are the game's materials, crumbling by their own physics" />
+    <p class="tag">MEND THE HEART OF YOUR WORLD</p>
+    <div class="cta">
+      <a class="btn" href="#buy">BUY DIRECT — $9.99</a>
+      <a class="btn ghost" href="https://store.steampowered.com/app/4899610" target="_blank" rel="noopener">WISHLIST ON STEAM</a>
+    </div>
+    <div class="scroll-hint">▼ every grain below is simulated ▼</div>
+  </section>
+
+  <!-- ── WORLD / PHYSICS ──────────────────────────────────────────── -->
+  <section id="world">
+    <h2 class="section-title">Every Grain Of This World Is Real</h2>
+    <p class="section-sub">Sand falls. Water finds its level. Fire spreads. Lava cools into stone.
+      A full cellular-automata simulation, all the way down — the world doesn't play an animation
+      of physics, it <em>is</em> physics.</p>
+
+    <div class="feature-row">
+      <div class="txt">
+        <h3>Dig, and the world answers</h3>
+        <p>Cut a channel and the ocean follows you in. Tunnel a dune and the sand chases your
+          pickaxe grain by grain. Every block you break obeys the same rules as the mountain
+          it came from.</p>
+      </div>
+      <div class="pic"><img src="assets/shots/12_diving_sand_cascade.png" alt="Sand cascading into an underwater dig" /></div>
+    </div>
+
+    <div class="feature-row">
+      <div class="txt">
+        <h3>A world with teeth</h3>
+        <p>Meteor strikes crater the land. Swarm hunts ring the dusk sky. The Great Volcano wakes.
+          Nights are darker, deeper, and worth surviving — tame a horse, raise crops, brew elixirs,
+          build the base that outlasts it all.</p>
+      </div>
+      <div class="pic"><img src="assets/shots/07_sunset_fire.png" alt="Sunset over a burning canyon" /></div>
+    </div>
+
+    <div class="feature-row">
+      <div class="txt">
+        <h3>Dig to the abyss. Sail past the clouds.</h3>
+        <p>One seed, one column of world: from the galaxy sky and its crystal islands, through
+          thirteen parallax biomes, past bioluminescent caverns, down to the deep dark where
+          the glitter caves sing. It's all one connected map.</p>
+      </div>
+      <div class="pic"><img src="assets/shots/13_bioluminescent_slime_colony.png" alt="Bioluminescent slime colony in the deep caves" /></div>
+    </div>
+  </section>
+
+  <!-- ── KEEPERS ──────────────────────────────────────────────────── -->
+  <section id="keepers">
+    <h2 class="section-title">Seven Keepers. One Heart.</h2>
+    <p class="section-sub">Each world scatters the Amulets of the Heart among its Keepers — seven bosses
+      with authored arenas, and not one of them falls to sword-swinging alone. The Deep Shark's water is
+      its armor: drain the trench, or freeze it. The Sand Leviathan swims through powder: strand it on
+      stone. Defeat them by <em>reshaping the world itself</em>.</p>
+    <div class="amulet-row">
+      <div class="am"><img src="assets/amulets/amulet_0.png" alt="" /><span>THE HEART</span></div>
+      <div class="am"><img src="assets/amulets/amulet_1.png" alt="" /><span>THE CROWN</span></div>
+      <div class="am"><img src="assets/amulets/amulet_2.png" alt="" /><span>THE DROP</span></div>
+      <div class="am"><img src="assets/amulets/amulet_3.png" alt="" /><span>THE PEARL</span></div>
+      <div class="am"><img src="assets/amulets/amulet_4.png" alt="" /><span>THE SHIELD</span></div>
+      <div class="am"><img src="assets/amulets/amulet_5.png" alt="" /><span>THE FLAKE</span></div>
+      <div class="am"><img src="assets/amulets/amulet_6.png" alt="" /><span>THE SPORE</span></div>
+    </div>
+    <p class="section-sub" style="margin-bottom:0">Collect them all, and mend the heart of your world.</p>
+  </section>
+
+  <!-- ── SCREENSHOTS ──────────────────────────────────────────────── -->
+  <section id="shots">
+    <h2 class="section-title">Straight From The Simulation</h2>
+    <p class="section-sub">Real captures, real physics — nothing staged that the game can't do live.</p>
+    <div class="shots-grid">
+      <img src="assets/shots/09_night_gallop_wisp_trail.png" alt="Night gallop under a wisp trail" />
+      <img src="assets/shots/11_torchlit_dawn_dunes.png" alt="Torch-lit dawn dunes" />
+      <img src="assets/shots/12_diving_sand_cascade.png" alt="Diving through a sand cascade" />
+      <img src="assets/shots/13_bioluminescent_slime_colony.png" alt="Bioluminescent slime colony" />
+      <img src="assets/shots/15_red_canyon_waterfall.png" alt="Red canyon waterfall" />
+      <img src="assets/shots/16_title_vista.png" alt="The title vista — the world spells the name" />
+    </div>
+  </section>
+
+  <!-- ── BESTIARY TEASER ──────────────────────────────────────────── -->
+  <section id="bestiary-teaser">
+    <h2 class="section-title">The World Is Inhabited</h2>
+    <p class="section-sub">Horses to tame, camels to caravan, jaguars that disagree with both,
+      and phantoms that only come out when the light dies.</p>
+    <div class="beast-strip">
+      <img src="assets/bestiary/deer.png" alt="Deer" title="Deer" />
+      <img src="assets/bestiary/camel.png" alt="Camel" title="Camel" />
+      <img src="assets/bestiary/jaguar.png" alt="Jaguar" title="Jaguar" />
+      <img src="assets/bestiary/panther.png" alt="Panther" title="Panther" />
+      <img src="assets/bestiary/scorpion.png" alt="Scorpion" title="Scorpion" />
+      <img src="assets/bestiary/phantom.png" alt="Phantom" title="Phantom" />
+      <img src="assets/bestiary/meteorite_golem.png" alt="Meteorite Golem" title="Meteorite Golem" />
+      <img src="assets/bestiary/alien_drone.png" alt="Alien Drone" title="Alien Drone" />
+    </div>
+    <div style="text-align:center"><a class="btn ghost" href="bestiary.html">OPEN THE FULL BESTIARY →</a></div>
+  </section>
+
+  <!-- ── BUY ──────────────────────────────────────────────────────── -->
+  <section id="buy">
+    <div class="shade"></div>
+    <div class="inner">
+      <h2 class="section-title">Get PIXELFALL</h2>
+      <p class="section-sub" style="color:var(--text)">Early Access — the full seven-Keeper storyline,
+        thirteen biomes, space, oceans, and everything the simulation can throw at you.
+        Buy direct below, or wishlist on Steam for launch.</p>
+      <div class="buy-cols">
+        <div class="buy-card k-wood">
+          <h3>BUY DIRECT (itch.io)</h3>
+          <span class="price">$9.99</span>
+          <p>DRM-free download, updates through Early Access, and a Steam key when we launch there.
+            Payment handled securely by itch.io.</p>
+          <!-- ITCH-ID: after creating the itch.io page, replace the div below
+               with the embed iframe from itch.io > Distribute > Embed game:
+          <iframe class="itch-frame" frameborder="0"
+            src="https://itch.io/embed/ITCH-ID?dark=true&amp;bg_color=1b2838&amp;fg_color=c7d5e0&amp;link_color=f0a500&amp;border_color=000000">
+          </iframe> -->
+          <a class="btn" href="https://itch.io" target="_blank" rel="noopener"
+             onclick="alert('The itch.io store page goes live with the Early Access build — until then, wishlist on Steam!');return false;">
+            BUY ON ITCH.IO</a>
+          <p class="note">itch.io checkout goes live with the EA build.</p>
+        </div>
+        <div class="buy-card k-slate">
+          <h3>WISHLIST ON STEAM</h3>
+          <span class="price">EA 2026</span>
+          <p>Coming to Steam Early Access — wishlist now and be there for the launch discount,
+            achievements, and cloud saves.</p>
+          <a class="btn ghost" href="https://store.steampowered.com/app/4899610" target="_blank" rel="noopener">OPEN STEAM PAGE</a>
+          <p class="note">Demo at the PvE Survival Crafting Fest.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <img src="assets/icon_heart.png" alt="" style="width:40px" /><br />
+    PIXELFALL © 2026 PixelWorld — a living pixel sandbox.<br />
+    Windows 10+, OpenGL 3.3, ~300 MB. Integrated GPUs welcome.<br />
+    <a href="https://store.steampowered.com/app/4899610">Steam</a> ·
+    <a href="bestiary.html">Bestiary</a> ·
+    <a href="mailto:miguelbenav@gmail.com">Contact</a>
+  </footer>
+
+  <div id="lightbox"><img src="" alt="" /></div>
+
+  <script>
+    // starfield
+    const sf = document.getElementById('starfield');
+    for (let i = 0; i < 90; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      const sz = Math.random() < .8 ? 2 : 3;
+      s.style.cssText = `left:${Math.random() * 100}%;top:${Math.random() * 100}%;width:${sz}px;height:${sz}px;` +
+        `--d:${(2 + Math.random() * 3).toFixed(1)}s;--a1:${(.05 + Math.random() * .2).toFixed(2)};--a2:${(.4 + Math.random() * .5).toFixed(2)}`;
+      sf.appendChild(s);
+    }
+    // lightbox
+    const lb = document.getElementById('lightbox'), lbi = lb.querySelector('img');
+    document.querySelectorAll('.shots-grid img').forEach(im => im.addEventListener('click', () => {
+      lbi.src = im.src; lb.style.display = 'flex';
+    }));
+    lb.addEventListener('click', () => lb.style.display = 'none');
+  </script>
+</body>
+
+</html>
