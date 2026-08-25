@@ -981,16 +981,27 @@
         }
         wctx.putImageData(wimg, 0, 0);
       }
+      // ghost placement: ASSEMBLE arms a preview that follows the cursor
+      const ghost = { armed: false, gx: 0, gy: 0, visible: false };
+      function drawGhost() {
+        if (!ghost.armed || !ghost.visible) return;
+        for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
+          const m = grid[y * GW + x];
+          if (!m) continue;
+          const wx = ghost.gx + x, wy = ghost.gy + y;
+          if (wx < 0 || wx >= WW || wy < 0 || wy >= WH) continue;
+          const c = MATS[MAT_IDS[m - 1]].c;
+          wctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',0.55)';
+          wctx.fillRect(wx, wy, 1, 1);
+        }
+      }
       (function wloop() {
         wmoved = 0; wstep(); wframe++;
-        if (wmoved || wdirty) { wrender(); wdirty = false; }
+        if (wmoved || wdirty || ghost.armed) { wrender(); drawGhost(); wdirty = false; }
         requestAnimationFrame(wloop);
       })();
 
-      let stamps = 0;
-      document.getElementById('assemble').addEventListener('click', () => {
-        if (!grid.some(v => v)) { stat.textContent = 'the table is empty. draw something first.'; return; }
-        const ox = ((WW - GW) / 2 | 0) + (stamps % 3 - 1) * 40, oy = 2;
+      function stampAt(ox, oy) {
         let placed = 0;
         for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
           const m = grid[y * GW + x];
@@ -1001,8 +1012,47 @@
           wa[i] = 1; wl[i] = 0; placed++;
           wwake(ox + x, oy + y);
         }
-        stamps++; wdirty = true;
-        stat.textContent = placed + ' cells assembled into the world. physics has opinions now.';
+        wdirty = true;
+        stat.textContent = placed
+          ? placed + ' cells assembled. physics has opinions now.'
+          : 'no room there - that spot is already world.';
+      }
+      const worldCell = e => {
+        const r = wc.getBoundingClientRect();
+        return [ (e.clientX - r.left) * WW / r.width | 0,
+                 (e.clientY - r.top) * WH / r.height | 0 ];
+      };
+      document.getElementById('assemble').addEventListener('click', () => {
+        if (!grid.some(v => v)) { stat.textContent = 'the table is empty. draw something first.'; return; }
+        ghost.armed = true; ghost.visible = false;
+        stat.textContent = 'now click in the world below to place it - right-click cancels.';
+        wc.style.cursor = 'copy';
+      });
+      wc.addEventListener('pointermove', e => {
+        if (!ghost.armed) return;
+        const [cx2, cy2] = worldCell(e);
+        ghost.gx = Math.max(0, Math.min(WW - GW, cx2 - (GW >> 1)));
+        ghost.gy = Math.max(0, Math.min(WH - GH, cy2 - (GH >> 1)));
+        ghost.visible = true;
+      });
+      wc.addEventListener('pointerdown', e => {
+        if (!ghost.armed || e.button === 2) return;
+        if (!ghost.visible) {          // touch: first tap is also the placement
+          const [cx2, cy2] = worldCell(e);
+          ghost.gx = Math.max(0, Math.min(WW - GW, cx2 - (GW >> 1)));
+          ghost.gy = Math.max(0, Math.min(WH - GH, cy2 - (GH >> 1)));
+        }
+        stampAt(ghost.gx, ghost.gy);
+        ghost.armed = false; ghost.visible = false;
+        wc.style.cursor = '';
+      });
+      wc.addEventListener('contextmenu', e => {
+        if (!ghost.armed) return;
+        e.preventDefault();
+        ghost.armed = false; ghost.visible = false;
+        wc.style.cursor = '';
+        wdirty = true;
+        stat.textContent = 'placement cancelled. the drawing waits on the table.';
       });
       document.getElementById('cleardraw').addEventListener('click', () => {
         grid.fill(0); drawPaint(); stat.textContent = 'a clean table.';
