@@ -221,6 +221,7 @@
       font-size: 9px; color: #e8dcc0; white-space: nowrap; }
     #apal .achip { margin-bottom: 16px; }
     #paint { display: block; margin: 0 auto 16px; border: 2px solid #000;
+      width: min(420px, 100%); height: auto;
       background: #171a21; cursor: crosshair; touch-action: none; image-rendering: pixelated; }
     .bench-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
     .bench-row .btn { padding: 9px 18px; font-size: 13px; }
@@ -251,8 +252,24 @@
     #letter .btn { margin-top: 12px; }
 
     @media (max-width: 640px) {
-      header nav { display: none; }
-      section { padding: 60px 5vw; }
+      header { gap: 12px; padding: 8px 12px; }
+      header nav { gap: 14px; overflow-x: auto; scrollbar-width: none; }
+      header nav::-webkit-scrollbar { display: none; }
+      header a { font-size: 13px; white-space: nowrap; }
+      header .btn { padding: 8px 12px; font-size: 12px; flex-shrink: 0; }
+      section { padding: 56px 4vw; }
+      .section-sub { font-size: 15px; }
+      .sim-spacer { height: 36vh; }
+      #hero .cta .btn { padding: 10px 16px; font-size: 13px; }
+      #mend { right: 10px; bottom: 10px; font-size: 10px; padding: 6px 10px; }
+      #letter { padding: 18px 14px; max-height: 88vh; }
+      #letter p { font-size: 13.5px; }
+      #bench { padding: 14px 8px; }
+      .achip { width: 30px; height: 30px; }
+      .achip span { top: 33px; font-size: 8px; }
+      .bench-row .btn { padding: 8px 11px; font-size: 11px; }
+      .buy-card { padding: 22px 14px; }
+      footer { font-size: 12px; }
     }
   </style>
 </head>
@@ -859,8 +876,7 @@
       const GW = 30, GH = 20, PC = 14;          // paint grid geometry
       const grid = new Uint8Array(GW * GH);
       const pc = document.getElementById('paint');
-      pc.width = GW * PC; pc.height = GH * PC;
-      pc.style.width = (GW * PC) + 'px'; pc.style.height = (GH * PC) + 'px';
+      pc.width = GW * PC; pc.height = GH * PC;   // CSS handles display size
       const pctx = pc.getContext('2d');
       let cur = idOf('stone');
 
@@ -904,7 +920,8 @@
       }
       function paintAt(e) {
         const r = pc.getBoundingClientRect();
-        const x = (e.clientX - r.left) / PC | 0, y = (e.clientY - r.top) / PC | 0;
+        const x = (e.clientX - r.left) * GW / r.width | 0,
+              y = (e.clientY - r.top) * GH / r.height | 0;
         if (x < 0 || x >= GW || y < 0 || y >= GH) return;
         grid[y * GW + x] = cur;
         drawPaint();

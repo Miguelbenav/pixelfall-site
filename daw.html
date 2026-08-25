@@ -1,5 +1,5 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>PIXELDAW</title>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>PIXELDAW</title>
 <style>
 @font-face { font-family:'Minecraft'; src:url('assets/Minecraft.ttf') format('truetype'); }
 :root { --bg:#171a21; --panel:#1b2838; --ink:#c7d5e0; --dim:#8f98a0; --acc:#f0a500; --acc2:#66c0f4; }
@@ -41,6 +41,18 @@ label { color:var(--dim); font-size:11px; }
 #renderov .rbar { height:100%; width:0%; background:linear-gradient(180deg,#ffd166,var(--acc));
   transition:width .3s linear; }
 #renderov .rhint { color:var(--dim); font-size:11px; }
+
+@media (max-width: 700px) {
+  header { padding: 6px 8px; gap: 6px; }
+  h1 { font-size: 12px; margin-right: 4px; }
+  button { padding: 4px 8px; font-size: 11px; }
+  label { font-size: 10px; }
+  input[type=number] { width: 46px; }
+  #tracks { width: 150px; }
+  .trk { padding: 6px 6px; font-size: 11px; }
+  main { height: calc(100vh - 150px); }
+  header span[style*="margin-left:auto"] { display: none; }
+}
 </style></head><body>
 <div id="renderov"><img src="assets/icon_heart.png" alt="">
   <div class="rmsg" id="rmsg">RENDERING&hellip;</div>
