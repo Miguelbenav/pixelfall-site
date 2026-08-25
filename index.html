@@ -23,7 +23,9 @@
       src: url('assets/Minecraft.ttf') format('truetype');
     }
 
-    *, *::before, *::after {
+    *,
+    *::before,
+    *::after {
       font-family: 'Minecraft', monospace !important;
       box-sizing: border-box;
       margin: 0;
@@ -45,7 +47,9 @@
       --magma: #d64b1d;
     }
 
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
       background: var(--steam-mid);
@@ -53,11 +57,34 @@
       overflow-x: hidden;
     }
 
-    img, video { image-rendering: pixelated; }
+    img,
+    video {
+      image-rendering: pixelated;
+    }
 
-    #starfield { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-    .star { position: absolute; background: #fff; animation: twinkle var(--d, 3s) ease-in-out infinite alternate; }
-    @keyframes twinkle { from { opacity: var(--a1, .15); } to { opacity: var(--a2, .7); } }
+    #starfield {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .star {
+      position: absolute;
+      background: #fff;
+      animation: twinkle var(--d, 3s) ease-in-out infinite alternate;
+    }
+
+    @keyframes twinkle {
+      from {
+        opacity: var(--a1, .15);
+      }
+
+      to {
+        opacity: var(--a2, .7);
+      }
+    }
 
     /* ── Kenney 9-slice panels ── */
     .k-wood {
@@ -66,12 +93,14 @@
       image-rendering: pixelated;
       color: #f4e5c3;
     }
+
     .k-slate {
       border: 14px solid transparent;
       border-image: url('assets/kenney/panel_slate.png') 10 fill round;
       image-rendering: pixelated;
       color: #dfe7f2;
     }
+
     .k-dark {
       border: 14px solid transparent;
       border-image: url('assets/kenney/panel_dark.png') 10 fill round;
@@ -80,196 +109,661 @@
 
     /* ── nav ── */
     header {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      display: flex; align-items: center; gap: 28px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 28px;
       padding: 10px 28px;
       background: rgba(23, 26, 33, .92);
       border-bottom: 2px solid #000;
     }
-    header img.mark { height: 34px; }
-    header nav { display: flex; gap: 22px; flex: 1; }
-    header a { color: var(--dim); text-decoration: none; font-size: 15px; letter-spacing: .5px; }
-    header a:hover { color: var(--blue); }
-    .btn {
-      display: inline-block; cursor: pointer; text-decoration: none;
-      padding: 12px 26px; font-size: 16px; letter-spacing: 1px;
-      color: #2b1f0a; background: linear-gradient(180deg, var(--amber-light), var(--amber));
-      border: 2px solid #000; box-shadow: 0 4px 0 #000;
-      transition: transform .08s;
-    }
-    .btn:hover { transform: translateY(-2px); }
-    .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #000; }
-    .btn.ghost {
-      background: var(--steam-panel); color: var(--text);
+
+    header img.mark {
+      height: 34px;
     }
 
-    section { position: relative; z-index: 1; padding: 90px 6vw; }
+    header nav {
+      display: flex;
+      gap: 22px;
+      flex: 1;
+    }
+
+    header a {
+      color: var(--dim);
+      text-decoration: none;
+      font-size: 15px;
+      letter-spacing: .5px;
+    }
+
+    header a:hover {
+      color: var(--blue);
+    }
+
+    .btn {
+      display: inline-block;
+      cursor: pointer;
+      text-decoration: none;
+      padding: 12px 26px;
+      font-size: 16px;
+      letter-spacing: 1px;
+      color: #2b1f0a;
+      background: linear-gradient(180deg, var(--amber-light), var(--amber));
+      border: 2px solid #000;
+      box-shadow: 0 4px 0 #000;
+      transition: transform .08s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #000;
+    }
+
+    .btn.ghost {
+      background: var(--steam-panel);
+      color: var(--text);
+    }
+
+    section {
+      position: relative;
+      z-index: 1;
+      padding: 90px 6vw;
+    }
+
     .section-title {
       font-size: clamp(26px, 3.4vw, 44px);
       color: var(--title-blue);
       text-shadow: 3px 3px 0 var(--stroke-navy);
-      margin-bottom: 14px; text-align: center;
+      margin-bottom: 14px;
+      text-align: center;
     }
-    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-    canvas.title-sim { display: block; margin: 0 auto; image-rendering: pixelated; cursor: crosshair; max-width: 100%; }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+
+    canvas.title-sim {
+      display: block;
+      margin: 0 auto;
+      image-rendering: pixelated;
+      cursor: crosshair;
+      max-width: 100%;
+    }
+
     /* pictures fall off the wall on hover, then re-hang */
-    .feature-row .pic img, .shots-grid img {
+    .feature-row .pic img,
+    .shots-grid img {
       transition: transform .9s cubic-bezier(.3, 1.4, .55, .96), box-shadow .9s;
       will-change: transform;
     }
-    img.fallen { position: relative; z-index: 6; box-shadow: 0 22px 30px rgba(0,0,0,.55) !important; }
-    .section-sub { text-align: center; color: var(--dim); max-width: 760px; margin: 0 auto 48px; font-size: 17px; line-height: 1.55; }
+
+    img.fallen {
+      position: relative;
+      z-index: 6;
+      box-shadow: 0 22px 30px rgba(0, 0, 0, .55) !important;
+    }
+
+    .section-sub {
+      text-align: center;
+      color: var(--dim);
+      max-width: 760px;
+      margin: 0 auto 48px;
+      font-size: 17px;
+      line-height: 1.55;
+    }
 
     /* ── hero ── */
     #hero {
-      min-height: 92vh; padding: 0;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 92vh;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       background: url('assets/hero_biomes.png') center/cover no-repeat;
       border-bottom: 4px solid #000;
     }
-    #hero .shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(23,26,33,.25), rgba(23,26,33,.78) 82%); }
+
+    #hero .shade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(23, 26, 33, .25), rgba(23, 26, 33, .78) 82%);
+    }
+
     #sim {
-      position: absolute; inset: 0; width: 100%; height: 100%;
-      image-rendering: pixelated; touch-action: pan-y; cursor: crosshair;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      touch-action: pan-y;
+      cursor: crosshair;
     }
-    .sim-spacer { height: 46vh; pointer-events: none; }
-    #hero .tag, #hero .cta, #hero .scroll-hint { pointer-events: none; }
-    #hero .cta a, #hero .scroll-hint { pointer-events: auto; }
+
+    .sim-spacer {
+      height: 46vh;
+      pointer-events: none;
+    }
+
+    #hero .tag,
+    #hero .cta,
+    #hero .scroll-hint {
+      pointer-events: none;
+    }
+
+    #hero .cta a,
+    #hero .scroll-hint {
+      pointer-events: auto;
+    }
+
     #mend {
-      position: absolute; right: 18px; bottom: 16px; z-index: 3;
-      background: rgba(23,26,33,.75); color: var(--dim); border: 2px solid #000;
-      padding: 8px 14px; font-size: 12px; cursor: pointer; letter-spacing: 1px;
+      position: absolute;
+      right: 18px;
+      bottom: 16px;
+      z-index: 3;
+      background: rgba(23, 26, 33, .75);
+      color: var(--dim);
+      border: 2px solid #000;
+      padding: 8px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      letter-spacing: 1px;
     }
-    #mend:hover { color: var(--amber-light); }
+
+    #mend:hover {
+      color: var(--amber-light);
+    }
+
     #hero p.tag {
-      position: relative; margin-top: 6px; font-size: clamp(15px, 1.9vw, 22px);
-      color: var(--amber-light); text-shadow: 2px 2px 0 #000; letter-spacing: 2px;
+      position: relative;
+      margin-top: 6px;
+      font-size: clamp(15px, 1.9vw, 22px);
+      color: var(--amber-light);
+      text-shadow: 2px 2px 0 #000;
+      letter-spacing: 2px;
     }
-    #hero .cta { position: relative; margin-top: 34px; display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
-    #hero .scroll-hint { position: absolute; bottom: 18px; color: var(--dim); font-size: 13px; animation: bob 1.6s ease-in-out infinite alternate; }
-    @keyframes bob { to { transform: translateY(6px); } }
+
+    #hero .cta {
+      position: relative;
+      margin-top: 34px;
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    #hero .scroll-hint {
+      position: absolute;
+      bottom: 18px;
+      color: var(--dim);
+      font-size: 13px;
+      animation: bob 1.6s ease-in-out infinite alternate;
+    }
+
+    @keyframes bob {
+      to {
+        transform: translateY(6px);
+      }
+    }
 
     /* ── features ── */
     .feature-row {
-      display: flex; gap: 40px; align-items: center; max-width: 1180px;
-      margin: 0 auto 70px; flex-wrap: wrap;
+      display: flex;
+      gap: 40px;
+      align-items: center;
+      max-width: 1180px;
+      margin: 0 auto 70px;
+      flex-wrap: wrap;
     }
-    .feature-row:nth-child(even) { flex-direction: row-reverse; }
-    .feature-row .txt { flex: 1 1 340px; }
-    .feature-row .txt h3 { color: var(--blue); font-size: 24px; margin-bottom: 12px; text-shadow: 2px 2px 0 #000; }
-    .feature-row .txt p { line-height: 1.65; font-size: 16px; color: var(--text); }
-    .feature-row .pic { flex: 1 1 480px; }
-    .feature-row .pic img { width: 100%; display: block; border: 3px solid #000; box-shadow: 0 8px 0 rgba(0,0,0,.45); }
+
+    .feature-row:nth-child(even) {
+      flex-direction: row-reverse;
+    }
+
+    .feature-row .txt {
+      flex: 1 1 340px;
+    }
+
+    .feature-row .txt h3 {
+      color: var(--blue);
+      font-size: 24px;
+      margin-bottom: 12px;
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    .feature-row .txt p {
+      line-height: 1.65;
+      font-size: 16px;
+      color: var(--text);
+    }
+
+    .feature-row .pic {
+      flex: 1 1 480px;
+    }
+
+    .feature-row .pic img {
+      width: 100%;
+      display: block;
+      border: 3px solid #000;
+      box-shadow: 0 8px 0 rgba(0, 0, 0, .45);
+    }
 
     /* ── keepers ── */
-    #keepers { background: linear-gradient(180deg, var(--steam-mid), #10151d 60%, var(--steam-mid)); }
-    .amulet-row { display: flex; gap: clamp(10px, 3vw, 34px); justify-content: center; flex-wrap: wrap; margin: 40px 0 18px; }
-    .amulet-row .am { text-align: center; }
-    .amulet-row img { width: clamp(56px, 7vw, 96px); animation: bob 2.2s ease-in-out infinite alternate; }
-    .amulet-row .am:nth-child(2n) img { animation-delay: .5s; }
-    .amulet-row .am:nth-child(3n) img { animation-delay: 1s; }
-    .amulet-row span { display: block; margin-top: 8px; color: var(--dim); font-size: 12px; }
+    #keepers {
+      background: linear-gradient(180deg, var(--steam-mid), #10151d 60%, var(--steam-mid));
+    }
+
+    .amulet-row {
+      display: flex;
+      gap: clamp(10px, 3vw, 34px);
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 40px 0 18px;
+    }
+
+    .amulet-row .am {
+      text-align: center;
+    }
+
+    .amulet-row img {
+      width: clamp(56px, 7vw, 96px);
+      animation: bob 2.2s ease-in-out infinite alternate;
+    }
+
+    .amulet-row .am:nth-child(2n) img {
+      animation-delay: .5s;
+    }
+
+    .amulet-row .am:nth-child(3n) img {
+      animation-delay: 1s;
+    }
+
+    .amulet-row span {
+      display: block;
+      margin-top: 8px;
+      color: var(--dim);
+      font-size: 12px;
+    }
 
     /* ── screenshots ── */
     .shots-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 14px; max-width: 1280px; margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 14px;
+      max-width: 1280px;
+      margin: 0 auto;
     }
+
     .shots-grid img {
-      width: 100%; display: block; border: 3px solid #000; cursor: pointer;
+      width: 100%;
+      display: block;
+      border: 3px solid #000;
+      cursor: pointer;
       transition: transform .12s;
     }
-    .shots-grid img:hover { transform: scale(1.025); }
-    #lightbox {
-      position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.92);
-      display: none; align-items: center; justify-content: center; cursor: zoom-out;
+
+    .shots-grid img:hover {
+      transform: scale(1.025);
     }
-    #lightbox img { max-width: 94vw; max-height: 92vh; border: 4px solid #000; }
+
+    #lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0, 0, 0, .92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+    }
+
+    #lightbox img {
+      max-width: 94vw;
+      max-height: 92vh;
+      border: 4px solid #000;
+    }
 
     /* ── bestiary teaser ── */
-    .beast-strip { display: flex; gap: 26px; justify-content: center; flex-wrap: wrap; margin: 34px 0; }
-    .beast-strip img { width: 72px; height: 72px; object-fit: contain; animation: bob 1.8s ease-in-out infinite alternate; }
-    .beast-strip img:nth-child(2n) { animation-delay: .4s; }
-    .beast-strip img:nth-child(3n) { animation-delay: .9s; }
+    .beast-strip {
+      display: flex;
+      gap: 26px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 34px 0;
+    }
+
+    .beast-strip img {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      animation: bob 1.8s ease-in-out infinite alternate;
+    }
+
+    .beast-strip img:nth-child(2n) {
+      animation-delay: .4s;
+    }
+
+    .beast-strip img:nth-child(3n) {
+      animation-delay: .9s;
+    }
 
     /* ── buy ── */
-    #buy { background: url('assets/mosaic.png') center/cover no-repeat; border-top: 4px solid #000; border-bottom: 4px solid #000; }
-    #buy .shade { position: absolute; inset: 0; background: rgba(16, 19, 26, .82); }
-    #buy .inner { position: relative; max-width: 980px; margin: 0 auto; text-align: center; }
-    .buy-cols { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-top: 40px; }
-    .buy-card { flex: 1 1 340px; max-width: 440px; padding: 30px 26px; text-align: center; }
-    .buy-card h3 { font-size: 22px; margin-bottom: 10px; }
-    .buy-card p { font-size: 14px; line-height: 1.6; margin-bottom: 18px; }
-    .buy-card .price { font-size: 34px; color: var(--amber-light); text-shadow: 2px 2px 0 #000; display: block; margin-bottom: 14px; }
-    .itch-frame { width: 100%; max-width: 552px; height: 167px; border: 0; margin: 0 auto; display: block; }
-    .note { font-size: 12px; color: var(--dim); margin-top: 16px; }
+    #buy {
+      background: url('assets/mosaic.png') center/cover no-repeat;
+      border-top: 4px solid #000;
+      border-bottom: 4px solid #000;
+    }
+
+    #buy .shade {
+      position: absolute;
+      inset: 0;
+      background: rgba(16, 19, 26, .82);
+    }
+
+    #buy .inner {
+      position: relative;
+      max-width: 980px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .buy-cols {
+      display: flex;
+      gap: 30px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 40px;
+    }
+
+    .buy-card {
+      flex: 1 1 340px;
+      max-width: 440px;
+      padding: 30px 26px;
+      text-align: center;
+    }
+
+    .buy-card h3 {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .buy-card p {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+
+    .buy-card .price {
+      font-size: 34px;
+      color: var(--amber-light);
+      text-shadow: 2px 2px 0 #000;
+      display: block;
+      margin-bottom: 14px;
+    }
+
+    .itch-frame {
+      width: 100%;
+      max-width: 552px;
+      height: 167px;
+      border: 0;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .note {
+      font-size: 12px;
+      color: var(--dim);
+      margin-top: 16px;
+    }
 
     footer {
-      position: relative; z-index: 1; padding: 44px 6vw; text-align: center;
-      background: var(--steam-dark); border-top: 2px solid #000;
-      color: var(--dim); font-size: 13px; line-height: 1.8;
+      position: relative;
+      z-index: 1;
+      padding: 44px 6vw;
+      text-align: center;
+      background: var(--steam-dark);
+      border-top: 2px solid #000;
+      color: var(--dim);
+      font-size: 13px;
+      line-height: 1.8;
     }
-    footer a { color: var(--blue); text-decoration: none; }
+
+    footer a {
+      color: var(--blue);
+      text-decoration: none;
+    }
 
     /* ── the assembly table toy ── */
-    #bench { max-width: 560px; margin: 0 auto; padding: 22px 22px 18px; text-align: center; }
-    #apal { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 14px; }
-    .achip { width: 34px; height: 34px; border: 2px solid #000; cursor: pointer;
-      image-rendering: pixelated; position: relative; }
-    .achip.sel { outline: 3px solid var(--amber-light); outline-offset: 1px; }
-    .achip span { position: absolute; top: 38px; left: 50%; transform: translateX(-50%);
-      font-size: 9px; color: #e8dcc0; white-space: nowrap; }
-    #apal .achip { margin-bottom: 16px; }
-    #paint { display: block; margin: 0 auto 16px; border: 2px solid #000;
-      width: min(420px, 100%); height: auto;
-      background: #171a21; cursor: crosshair; touch-action: none; image-rendering: pixelated; }
-    .bench-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
-    .bench-row .btn { padding: 9px 18px; font-size: 13px; }
-    #craftstat { color: #cdbb95; font-size: 13px; min-height: 18px; }
-    #aworld { display: block; margin: 24px auto 0; border: 3px solid #000;
+    #bench {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 22px 22px 18px;
+      text-align: center;
+    }
+
+    #apal {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+
+    .achip {
+      width: 34px;
+      height: 34px;
+      border: 2px solid #000;
+      cursor: pointer;
+      image-rendering: pixelated;
+      position: relative;
+    }
+
+    .achip.sel {
+      outline: 3px solid var(--amber-light);
+      outline-offset: 1px;
+    }
+
+    .achip span {
+      position: absolute;
+      top: 38px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 9px;
+      color: #e8dcc0;
+      white-space: nowrap;
+    }
+
+    #apal .achip {
+      margin-bottom: 16px;
+    }
+
+    #paint {
+      display: block;
+      margin: 0 auto 16px;
+      border: 2px solid #000;
+      width: min(420px, 100%);
+      height: auto;
+      background: #171a21;
+      cursor: crosshair;
+      touch-action: none;
+      image-rendering: pixelated;
+    }
+
+    .bench-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .bench-row .btn {
+      padding: 9px 18px;
+      font-size: 13px;
+    }
+
+    #craftstat {
+      color: #cdbb95;
+      font-size: 13px;
+      min-height: 18px;
+    }
+
+    #aworld {
+      display: block;
+      margin: 24px auto 0;
+      border: 3px solid #000;
       background: linear-gradient(180deg, #131720, #0d1117);
-      box-shadow: 0 10px 0 rgba(0,0,0,.45); image-rendering: pixelated;
-      width: min(880px, 94vw); }
+      box-shadow: 0 10px 0 rgba(0, 0, 0, .45);
+      image-rendering: pixelated;
+      width: min(880px, 94vw);
+    }
 
     /* ── the dev letter (first visit) ── */
     #letter-overlay {
-      position: fixed; inset: 0; z-index: 300;
+      position: fixed;
+      inset: 0;
+      z-index: 300;
       background: rgba(10, 12, 17, .88);
-      display: none; align-items: center; justify-content: center;
+      display: none;
+      align-items: center;
+      justify-content: center;
       padding: 24px;
     }
-    #letter-overlay.show { display: flex; }
+
+    #letter-overlay.show {
+      display: flex;
+    }
+
     #letter {
-      max-width: 640px; max-height: 86vh; overflow-y: auto;
+      max-width: 640px;
+      max-height: 86vh;
+      overflow-y: auto;
       border: 14px solid transparent;
       border-image: url('assets/kenney/panel_parchment.png') 10 fill round;
       image-rendering: pixelated;
-      color: #5b4a2f; padding: 26px 30px;
+      color: #5b4a2f;
+      padding: 26px 30px;
     }
-    #letter h2 { font-size: 20px; margin-bottom: 16px; color: #4a3820; letter-spacing: 1px; }
-    #letter p { font-size: 14.5px; line-height: 1.7; margin-bottom: 14px; }
-    #letter .sig { font-size: 16px; margin-top: 6px; }
-    #letter .btn { margin-top: 12px; }
+
+    #letter h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+      color: #4a3820;
+      letter-spacing: 1px;
+    }
+
+    #letter p {
+      font-size: 14.5px;
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+
+    #letter .sig {
+      font-size: 16px;
+      margin-top: 6px;
+    }
+
+    #letter .btn {
+      margin-top: 12px;
+    }
 
     @media (max-width: 640px) {
-      header { gap: 12px; padding: 8px 12px; }
-      header nav { gap: 14px; overflow-x: auto; scrollbar-width: none; }
-      header nav::-webkit-scrollbar { display: none; }
-      header a { font-size: 13px; white-space: nowrap; }
-      header .btn { padding: 8px 12px; font-size: 12px; flex-shrink: 0; }
-      section { padding: 56px 4vw; }
-      .section-sub { font-size: 15px; }
-      .sim-spacer { height: 36vh; }
-      #hero .cta .btn { padding: 10px 16px; font-size: 13px; }
-      #mend { right: 10px; bottom: 10px; font-size: 10px; padding: 6px 10px; }
-      #letter { padding: 18px 14px; max-height: 88vh; }
-      #letter p { font-size: 13.5px; }
-      #bench { padding: 14px 8px; }
-      .achip { width: 30px; height: 30px; }
-      .achip span { top: 33px; font-size: 8px; }
-      .bench-row .btn { padding: 8px 11px; font-size: 11px; }
-      .buy-card { padding: 22px 14px; }
-      footer { font-size: 12px; }
+      header {
+        gap: 12px;
+        padding: 8px 12px;
+      }
+
+      header nav {
+        gap: 14px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      header nav::-webkit-scrollbar {
+        display: none;
+      }
+
+      header a {
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      header .btn {
+        padding: 8px 12px;
+        font-size: 12px;
+        flex-shrink: 0;
+      }
+
+      section {
+        padding: 56px 4vw;
+      }
+
+      .section-sub {
+        font-size: 15px;
+      }
+
+      .sim-spacer {
+        height: 36vh;
+      }
+
+      #hero .cta .btn {
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+
+      #mend {
+        right: 10px;
+        bottom: 10px;
+        font-size: 10px;
+        padding: 6px 10px;
+      }
+
+      #letter {
+        padding: 18px 14px;
+        max-height: 88vh;
+      }
+
+      #letter p {
+        font-size: 13.5px;
+      }
+
+      #bench {
+        padding: 14px 8px;
+      }
+
+      .achip {
+        width: 30px;
+        height: 30px;
+      }
+
+      .achip span {
+        top: 33px;
+        font-size: 8px;
+      }
+
+      .bench-row .btn {
+        padding: 8px 11px;
+        font-size: 11px;
+      }
+
+      .buy-card {
+        padding: 22px 14px;
+      }
+
+      footer {
+        font-size: 12px;
+      }
     }
   </style>
 </head>
@@ -279,11 +773,15 @@
     <div id="letter">
       <h2 id="letter-title">A LETTER FROM THE DEV</h2>
       <p>Hey everyone — it's Miguel Benavides.</p>
-      <p>I'm a solo dev, and I've been a lover and a fan of the crafting-survival genre since
-        I was a little kid. As some of you have already noticed, <em>pixelfall.net</em> is my —
-        very possibly cringy — way of paying what's owed, in admiration, to the guy who made it
-        all come true: <strong>Notch</strong>. And to the craft itself. So: thank you. You're the
-        guy. You're the dude that made it all happen, and it's why I'm here today.</p>
+      <p>For context: I'm GM of Amber Colombia and co-head of studio at Madbricks — a game
+        studio that's been going for thirteen years now, and one I have the pleasure of
+        leading alongside wonderful colleagues.</p>
+      <p>It turns out that through 2026 I've been making a game. It started from mere
+        fascination — a curiosity about developing games as a holistic craft — and it has
+        turned, slowly but surely, into a fully fledged game. I've been a lover and a fan
+        of the crafting-survival genre since I was a little kid, and as some of you have
+        already noticed, <em>pixelfall.net</em> is my — very possibly cringy — path of
+        admiration for the genre that raised me.</p>
       <p>A word on why the game lives <em>here</em> first. PIXELFALL is headed to Steam — but
         Steam's review timelines have been a slow kind of torture for a solo dev trying to
         ship. So instead of waiting politely, I built my own corner of the internet and made
@@ -300,8 +798,7 @@
         that will be constantly evolving. Hit me up with any comments and thoughts you have
         about the game. And please, don't be too harsh: this is my first attempt at doing
         this as a solo dev.</p>
-      <p>For context — I'm GM and co-head of studio at Mad Bricks, a game studio that's been
-        going for thirteen years now. This is my first real take on making everything by myself.</p>
+
       <p class="sig">See you in the world,<br />— Miguel</p>
       <button class="btn" id="letter-close">ENTER PIXELFALL</button>
     </div>
@@ -327,12 +824,14 @@
        your cursor/finger erodes it by that material's real physics. -->
   <section id="hero">
     <div class="shade"></div>
-    <canvas id="sim" aria-label="PIXELFALL — an interactive title: touch the letters and each material crumbles by its own physics"></canvas>
+    <canvas id="sim"
+      aria-label="PIXELFALL — an interactive title: touch the letters and each material crumbles by its own physics"></canvas>
     <div class="sim-spacer"></div>
     <p class="tag">MEND THE HEART OF YOUR WORLD</p>
     <div class="cta">
       <a class="btn" href="#buy">BUY DIRECT — $9.99</a>
-      <a class="btn ghost" href="https://store.steampowered.com/app/4899610" target="_blank" rel="noopener">WISHLIST ON STEAM</a>
+      <a class="btn ghost" href="https://store.steampowered.com/app/4899610" target="_blank" rel="noopener">WISHLIST ON
+        STEAM</a>
     </div>
     <button id="mend" title="Rebuild the title">↺ MEND THE LETTERS</button>
     <div class="scroll-hint">▼ touch the letters — every grain is simulated ▼</div>
@@ -343,8 +842,7 @@
     <h2 class="section-title" data-mat="fire">See It Move</h2>
     <p class="section-sub">Sixty seconds of the simulation doing what it does.
       Sound on — the suite is playing.</p>
-    <video id="trailer-vid" controls preload="metadata" poster="assets/shots/16_title_vista.png"
-      style="display:block; width:min(1080px,94vw); margin:0 auto; border:3px solid #000;
+    <video id="trailer-vid" controls preload="metadata" poster="assets/shots/16_title_vista.png" style="display:block; width:min(1080px,94vw); margin:0 auto; border:3px solid #000;
              box-shadow:0 10px 0 rgba(0,0,0,.45); background:#000;">
       <source src="assets/trailer.mp4" type="video/mp4" />
       Your browser doesn't do video — the screenshots below move plenty in spirit.
@@ -365,7 +863,8 @@
           pickaxe grain by grain. Every block you break obeys the same rules as the mountain
           it came from.</p>
       </div>
-      <div class="pic"><img src="assets/shots/12_diving_sand_cascade.png" alt="Sand cascading into an underwater dig" /></div>
+      <div class="pic"><img src="assets/shots/12_diving_sand_cascade.png" alt="Sand cascading into an underwater dig" />
+      </div>
     </div>
 
     <div class="feature-row">
@@ -375,7 +874,8 @@
           Nights are darker, deeper, and worth surviving — tame a horse, raise crops, brew elixirs,
           build the base that outlasts it all.</p>
       </div>
-      <div class="pic"><img src="assets/shots/14_sunken_dune_void_swarm.png" alt="A void swarm hovering over the sunken dunes" /></div>
+      <div class="pic"><img src="assets/shots/14_sunken_dune_void_swarm.png"
+          alt="A void swarm hovering over the sunken dunes" /></div>
     </div>
 
     <div class="feature-row">
@@ -385,7 +885,8 @@
           thirteen parallax biomes, past bioluminescent caverns, down to the deep dark where
           the glitter caves sing. It's all one connected map.</p>
       </div>
-      <div class="pic"><img src="assets/shots/13_bioluminescent_slime_colony.png" alt="Bioluminescent slime colony in the deep caves" /></div>
+      <div class="pic"><img src="assets/shots/13_bioluminescent_slime_colony.png"
+          alt="Bioluminescent slime colony in the deep caves" /></div>
     </div>
   </section>
 
@@ -483,7 +984,7 @@
             src="https://itch.io/embed/ITCH-ID?dark=true&amp;bg_color=1b2838&amp;fg_color=c7d5e0&amp;link_color=f0a500&amp;border_color=000000">
           </iframe> -->
           <a class="btn" href="https://itch.io" target="_blank" rel="noopener"
-             onclick="alert('The itch.io store page goes live with the Early Access build — until then, wishlist on Steam!');return false;">
+            onclick="alert('The itch.io store page goes live with the Early Access build — until then, wishlist on Steam!');return false;">
             BUY ON ITCH.IO</a>
           <p class="note">itch.io checkout goes live with the EA build.</p>
         </div>
@@ -492,7 +993,8 @@
           <span class="price">EA 2026</span>
           <p>Coming to Steam Early Access — wishlist now and be there for the launch discount,
             achievements, and cloud saves.</p>
-          <a class="btn ghost" href="https://store.steampowered.com/app/4899610" target="_blank" rel="noopener">OPEN STEAM PAGE</a>
+          <a class="btn ghost" href="https://store.steampowered.com/app/4899610" target="_blank" rel="noopener">OPEN
+            STEAM PAGE</a>
           <p class="note">Demo at the PvE Survival Crafting Fest.</p>
         </div>
       </div>
@@ -520,7 +1022,7 @@
     } catch (e) { lo.classList.add('show'); }
     document.getElementById('letter-close').addEventListener('click', () => {
       lo.classList.remove('show');
-      try { localStorage.setItem('pf-letter-seen', '1'); } catch (e) {}
+      try { localStorage.setItem('pf-letter-seen', '1'); } catch (e) { }
     });
     document.getElementById('letter-open').addEventListener('click', (e) => {
       e.preventDefault(); lo.classList.add('show'); window.scrollTo(0, 0);
@@ -551,16 +1053,16 @@
        ice shatters, fire burns UPWARD. Titles auto-mend after idling.
        ================================================================= */
     const MATS = {
-      stone:    { c: [121,136,151], cat: 'solid', resist: 0.55 },
-      sand:     { c: [223,196,130], cat: 'powder' },
-      water:    { c: [44,123,182],  cat: 'liquid', slow: 0 },
-      magma:    { c: [214,75,29],   cat: 'liquid', slow: 1 },
-      dirt:     { c: [124,84,50],   cat: 'powder' },
-      grass:    { c: [92,143,55],   cat: 'powder' },
-      ice:      { c: [186,222,240], cat: 'solid', shatter: 6 },
-      fire:     { c: [255,170,50],  cat: 'fire' },
-      snow:     { c: [242,247,249], cat: 'powder' },
-      obsidian: { c: [46,27,56],    cat: 'solid', resist: 0.94 },
+      stone: { c: [121, 136, 151], cat: 'solid', resist: 0.55 },
+      sand: { c: [223, 196, 130], cat: 'powder' },
+      water: { c: [44, 123, 182], cat: 'liquid', slow: 0 },
+      magma: { c: [214, 75, 29], cat: 'liquid', slow: 1 },
+      dirt: { c: [124, 84, 50], cat: 'powder' },
+      grass: { c: [92, 143, 55], cat: 'powder' },
+      ice: { c: [186, 222, 240], cat: 'solid', shatter: 6 },
+      fire: { c: [255, 170, 50], cat: 'fire' },
+      snow: { c: [242, 247, 249], cat: 'powder' },
+      obsidian: { c: [46, 27, 56], cat: 'solid', resist: 0.94 },
     };
     const MAT_IDS = Object.keys(MATS);
     const idOf = n => MAT_IDS.indexOf(n) + 1;
@@ -761,7 +1263,7 @@
         const pts = e.touches ? [...e.touches] : [e];
         for (const p of pts)
           disturb(((p.clientX - r.left) / CELL) | 0, ((p.clientY - r.top) / CELL) | 0,
-                  opts.radius || 3);
+            opts.radius || 3);
       }
       cv.addEventListener('pointermove', pointer);
       cv.addEventListener('pointerdown', pointer);
@@ -772,38 +1274,38 @@
 
     // boot all sims once the pixel font is ready
     (document.fonts ? document.fonts.load('20px Minecraft').then(() => document.fonts.ready)
-                    : Promise.resolve()).then(() => {
-      const hero = makeSim(document.getElementById('sim'), {
-        fill: true, text: 'PIXELFALL',
-        mats: ['stone','sand','water','magma','dirt','ice','fire','snow','obsidian'],
-        grassLip: 4, cell: 5, baseY: 0.34, radius: 3,
-      });
-      sims.push(hero);
-      document.getElementById('mend').addEventListener('click', hero.mend);
+      : Promise.resolve()).then(() => {
+        const hero = makeSim(document.getElementById('sim'), {
+          fill: true, text: 'PIXELFALL',
+          mats: ['stone', 'sand', 'water', 'magma', 'dirt', 'ice', 'fire', 'snow', 'obsidian'],
+          grassLip: 4, cell: 5, baseY: 0.34, radius: 3,
+        });
+        sims.push(hero);
+        document.getElementById('mend').addEventListener('click', hero.mend);
 
-      document.querySelectorAll('.section-title[data-mat]').forEach(h2 => {
-        const text = h2.textContent.trim();
-        const fontPx = parseFloat(getComputedStyle(h2).fontSize);
-        const c = document.createElement('canvas');
-        c.className = 'title-sim';
-        c.setAttribute('aria-hidden', 'true');
-        h2.innerHTML = '';
-        const sr = document.createElement('span');
-        sr.className = 'sr-only'; sr.textContent = text;
-        h2.appendChild(sr); h2.appendChild(c);
-        sims.push(makeSim(c, {
-          text, mats: [h2.dataset.mat], fontPx,
-          cell: 3, baseY: 0.32, radius: 4, autoMendMs: 9000,
-        }));
-      });
+        document.querySelectorAll('.section-title[data-mat]').forEach(h2 => {
+          const text = h2.textContent.trim();
+          const fontPx = parseFloat(getComputedStyle(h2).fontSize);
+          const c = document.createElement('canvas');
+          c.className = 'title-sim';
+          c.setAttribute('aria-hidden', 'true');
+          h2.innerHTML = '';
+          const sr = document.createElement('span');
+          sr.className = 'sr-only'; sr.textContent = text;
+          h2.appendChild(sr); h2.appendChild(c);
+          sims.push(makeSim(c, {
+            text, mats: [h2.dataset.mat], fontPx,
+            cell: 3, baseY: 0.32, radius: 4, autoMendMs: 9000,
+          }));
+        });
 
-      sims.forEach(s => s.build());
-      (function loop(now) { sims.forEach(s => s.tick(now || 0)); requestAnimationFrame(loop); })(0);
+        sims.forEach(s => s.build());
+        (function loop(now) { sims.forEach(s => s.tick(now || 0)); requestAnimationFrame(loop); })(0);
 
-      let rsT; window.addEventListener('resize', () => {
-        clearTimeout(rsT); rsT = setTimeout(() => sims.forEach(s => s.build()), 250);
+        let rsT; window.addEventListener('resize', () => {
+          clearTimeout(rsT); rsT = setTimeout(() => sims.forEach(s => s.build()), 250);
+        });
       });
-    });
 
     // ── pictures fall off the wall: gravity, collision, bounce, re-hang ──
     document.querySelectorAll('.feature-row .pic img, .shots-grid img').forEach(im => {
@@ -818,7 +1320,7 @@
         if (row) {
           const next = row.nextElementSibling;
           dist = next ? next.getBoundingClientRect().top - r.bottom + 10
-                      : row.parentElement.getBoundingClientRect().bottom - r.bottom - 8;
+            : row.parentElement.getBoundingClientRect().bottom - r.bottom - 8;
         } else if (grid) {
           // collide with the tile actually underneath this one
           let best = Infinity;
@@ -829,7 +1331,7 @@
               best = Math.min(best, q.top - r.bottom);
           });
           dist = isFinite(best) ? best + 6
-                                : grid.getBoundingClientRect().bottom - r.bottom + 30;
+            : grid.getBoundingClientRect().bottom - r.bottom + 30;
         }
         dist = Math.max(20, Math.min(dist, 280));
         const rot = (4 + Math.random() * 9) * (Math.random() < 0.5 ? -1 : 1);
@@ -871,7 +1373,7 @@
 
     // ── the Assembly Table: draw with materials, stamp into a live world ──
     (() => {
-      const PAL = ['stone','sand','water','magma','dirt','grass','ice','snow','obsidian','fire'];
+      const PAL = ['stone', 'sand', 'water', 'magma', 'dirt', 'grass', 'ice', 'snow', 'obsidian', 'fire'];
       const hex2 = c => c;
       const GW = 30, GH = 20, PC = 14;          // paint grid geometry
       const grid = new Uint8Array(GW * GH);
@@ -921,7 +1423,7 @@
       function paintAt(e) {
         const r = pc.getBoundingClientRect();
         const x = (e.clientX - r.left) * GW / r.width | 0,
-              y = (e.clientY - r.top) * GH / r.height | 0;
+          y = (e.clientY - r.top) * GH / r.height | 0;
         if (x < 0 || x >= GW || y < 0 || y >= GH) return;
         grid[y * GW + x] = cur;
         drawPaint();
@@ -1036,8 +1538,8 @@
       }
       const worldCell = e => {
         const r = wc.getBoundingClientRect();
-        return [ (e.clientX - r.left) * WW / r.width | 0,
-                 (e.clientY - r.top) * WH / r.height | 0 ];
+        return [(e.clientX - r.left) * WW / r.width | 0,
+        (e.clientY - r.top) * WH / r.height | 0];
       };
       document.getElementById('assemble').addEventListener('click', () => {
         if (!grid.some(v => v)) { stat.textContent = 'the table is empty. draw something first.'; return; }
