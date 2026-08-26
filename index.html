@@ -633,6 +633,67 @@
       width: min(880px, 94vw);
     }
 
+
+    /* ── the SmartScreen tutorial (animated) ── */
+    #ss-overlay { position: fixed; inset: 0; z-index: 320; background: rgba(10,12,17,.9);
+      display: none; align-items: center; justify-content: center; padding: 18px; overflow-y: auto; }
+    #ss-overlay.show { display: flex; }
+    #ss-box { width: 100%; max-width: 560px; margin: auto; padding: 24px 22px; text-align: center; }
+    #ss-box h3 { color: var(--amber-light); font-size: 19px; margin-bottom: 8px; letter-spacing: 1px; }
+    #ss-box .ss-sub { color: var(--dim); font-size: 13px; margin-bottom: 18px; line-height: 1.6; }
+    .ss-stage { position: relative; background: #0e1118; border: 3px solid #000; height: 300px;
+      margin-bottom: 16px; overflow: hidden; }
+    .ss-popup { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+      width: 82%; background: #7b2f8f; border: 3px solid #000; padding: 16px 16px 14px;
+      text-align: left; animation: ssPopup 9s infinite; }
+    .ss-popup h4 { color: #fff; font-size: 14px; margin-bottom: 8px; }
+    .ss-popup p { color: #e8d9ee; font-size: 10px; line-height: 1.5; margin-bottom: 8px; }
+    .ss-more { color: #cfe6ff; font-size: 11px; text-decoration: underline; display: inline-block;
+      animation: ssMoreGlow 9s infinite; }
+    .ss-reveal { overflow: hidden; max-height: 0; animation: ssReveal 9s infinite; }
+    .ss-reveal p { font-size: 10px; color: #e8d9ee; margin: 8px 0 10px; }
+    .ss-btnrow { display: flex; gap: 10px; justify-content: flex-end; }
+    .ss-btn { border: 2px solid #000; padding: 7px 13px; font-size: 10.5px; color: #2b1f0a;
+      background: #e9e2ef; }
+    .ss-btn.run { background: linear-gradient(180deg, var(--amber-light), var(--amber));
+      animation: ssRunPulse 9s infinite; }
+    .ss-cursor { position: absolute; width: 22px; height: 22px; z-index: 5; left: 82%; top: 88%;
+      animation: ssCursor 9s infinite; pointer-events: none;
+      filter: drop-shadow(2px 3px 0 rgba(0,0,0,.6)); }
+    .ss-click { position: absolute; width: 34px; height: 34px; border: 3px solid var(--amber-light);
+      border-radius: 50%; opacity: 0; z-index: 4; animation: ssClick1 9s infinite; }
+    .ss-click.c2 { animation: ssClick2 9s infinite; }
+    .ss-done { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px;
+      align-items: center; justify-content: center; opacity: 0; animation: ssDone 9s infinite; }
+    .ss-done img { width: 56px; image-rendering: pixelated; }
+    .ss-done span { color: var(--amber-light); font-size: 15px; text-shadow: 2px 2px 0 #000; }
+    @keyframes ssPopup { 0%,4% { opacity: 0; } 8%,72% { opacity: 1; } 78%,100% { opacity: 0; } }
+    @keyframes ssMoreGlow { 0%,18%,32%,100% { color: #cfe6ff; text-shadow: none; }
+      22%,28% { color: #fff; text-shadow: 0 0 8px #fff; } }
+    @keyframes ssReveal { 0%,30% { max-height: 0; } 36%,100% { max-height: 130px; } }
+    @keyframes ssRunPulse { 0%,40%,62%,100% { box-shadow: none; }
+      46%,56% { box-shadow: 0 0 0 3px var(--amber-light); } }
+    @keyframes ssCursor {
+      0%,8%   { left: 82%; top: 88%; }
+      22%     { left: 26%; top: 46%; }
+      32%     { left: 26%; top: 46%; }
+      52%     { left: 56%; top: 72%; }
+      64%     { left: 56%; top: 72%; }
+      78%,100%{ left: 82%; top: 88%; } }
+    @keyframes ssClick1 { 0%,24% { opacity: 0; transform: scale(.3); }
+      27% { opacity: 1; transform: scale(.6); } 32%,100% { opacity: 0; transform: scale(1.15); } }
+    @keyframes ssClick2 { 0%,55% { opacity: 0; transform: scale(.3); }
+      58% { opacity: 1; transform: scale(.6); } 63%,100% { opacity: 0; transform: scale(1.15); } }
+    @keyframes ssDone { 0%,78% { opacity: 0; } 84%,96% { opacity: 1; } 100% { opacity: 0; } }
+    .ss-steps { text-align: left; color: var(--text); font-size: 13px; line-height: 1.7;
+      margin-bottom: 14px; }
+    .ss-steps b { color: var(--amber-light); }
+    .ss-alt { color: var(--dim); font-size: 11.5px; line-height: 1.6; border-top: 1px solid #2a3644;
+      padding-top: 10px; margin-bottom: 14px; text-align: left; }
+    .ss-guide-link { display: inline-block; margin-top: 8px; background: none; border: none;
+      color: var(--blue); font-size: 12px; cursor: pointer; text-decoration: underline;
+      font-family: inherit; }
+
     /* ── the dev letter (first visit) ── */
     #letter-overlay {
       position: fixed;
@@ -828,6 +889,48 @@
       <button class="btn" id="letter-close">ENTER PIXELFALL</button>
     </div>
   </div>
+  <div id="ss-overlay" role="dialog" aria-modal="true" aria-label="First launch on Windows guide">
+    <div id="ss-box" class="k-slate">
+      <h3>FIRST LAUNCH ON WINDOWS</h3>
+      <p class="ss-sub">Windows is wary of games from new indie devs. One click,
+        one time &mdash; watch the cursor do it:</p>
+      <div class="ss-stage">
+        <div class="ss-popup">
+          <h4>Windows protected your PC</h4>
+          <p>Microsoft Defender SmartScreen prevented an unrecognized app from starting.</p>
+          <span class="ss-more">More info</span>
+          <div class="ss-reveal">
+            <p>App: &nbsp;PixelFall Demo.exe<br/>Publisher: &nbsp;Unknown publisher</p>
+            <div class="ss-btnrow">
+              <span class="ss-btn run">Run anyway</span>
+              <span class="ss-btn">Don&rsquo;t run</span>
+            </div>
+          </div>
+        </div>
+        <div class="ss-click" style="left:24%; top:44%;"></div>
+        <div class="ss-click c2" style="left:54%; top:70%;"></div>
+        <svg class="ss-cursor" viewBox="0 0 24 24"><path d="M4 2 L4 20 L9 15 L12 22 L15 20 L12 14 L19 14 Z" fill="#fff" stroke="#000" stroke-width="1.6"/></svg>
+        <div class="ss-done">
+          <img src="assets/amulets/amulet_0.png" alt="" />
+          <span>that&rsquo;s it. enjoy the world.</span>
+        </div>
+      </div>
+      <div class="ss-steps">
+        <b>1.</b> On the popup, click the small <b>&ldquo;More info&rdquo;</b> text.<br/>
+        <b>2.</b> A <b>&ldquo;Run anyway&rdquo;</b> button appears &mdash; click it.<br/>
+        <b>3.</b> Never again. Windows remembers.
+      </div>
+      <p class="ss-alt">No &ldquo;More info&rdquo; on your popup? Rare, but fixable: right-click the
+        downloaded ZIP &rarr; Properties &rarr; tick <b>Unblock</b> &rarr; OK, then extract again.
+        Or skip the whole dance &mdash; the free
+        <a href="https://itch.io/app" target="_blank" rel="noopener" style="color:var(--amber-light)">itch app</a>
+        installs with zero warnings.</p>
+      <p class="ss-alt" style="border-top:none;padding-top:0;">Why it happens: that&rsquo;s Windows
+        being wary of new indie devs, not the game. Every clean launch teaches it to trust us &mdash;
+        the warning literally retires itself as more people play.</p>
+      <button class="btn" id="ss-close">GOT IT</button>
+    </div>
+  </div>
   <div id="starfield"></div>
 
   <header>
@@ -1010,7 +1113,8 @@
             <a href="https://itch.io/app" target="_blank" rel="noopener" style="color:var(--amber-light)">itch app</a>
             &mdash; zero Windows warnings, auto-updates included</p>
           <a class="btn ghost" href="assets/PixelFall_Demo.zip" download>DIRECT DOWNLOAD (.ZIP)</a>
-          <p class="note">~28 MB &middot; Windows 10+ &middot; if Windows warns: "More info" &rarr; "Run anyway"</p>
+          <p class="note">~28 MB &middot; Windows 10+</p>
+          <button class="ss-guide-link" id="ss-open">Windows shows a warning? the 20-second fix, animated &darr;</button>
         </div>
         <div class="buy-card k-slate">
           <h3>EARLY ACCESS</h3>
@@ -1076,6 +1180,12 @@
       e.preventDefault(); lo.classList.add('show'); window.scrollTo(0, 0);
     });
     lo.addEventListener('click', (e) => { if (e.target === lo) document.getElementById('letter-close').click(); });
+
+    // SmartScreen guide modal
+    const sso = document.getElementById('ss-overlay');
+    document.getElementById('ss-open').addEventListener('click', () => sso.classList.add('show'));
+    document.getElementById('ss-close').addEventListener('click', () => sso.classList.remove('show'));
+    sso.addEventListener('click', e => { if (e.target === sso) sso.classList.remove('show'); });
 
     // starfield
     const sf = document.getElementById('starfield');
