@@ -11,6 +11,9 @@
   <meta property="og:description" content="Every grain of this world is real. Seven Keepers guard the amulets." />
   <meta property="og:image" content="assets/shots/16_title_vista.png" />
   <link rel="icon" href="assets/icon_heart.png" />
+  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+  <script defer src="/_vercel/insights/script.js"></script>
+
   <style>
     /* ══════════════════════════════════════════════════════════════════
        CONFIG — set these when accounts are ready:
@@ -1620,6 +1623,26 @@
       document.getElementById('clearworld').addEventListener('click', () => {
         wm.fill(0); wa.fill(0); wdirty = true; stat.textContent = 'the world forgets. draw again.';
       });
+    })();
+
+    // ── analytics events: what visitors actually do ────────────────────
+    (() => {
+      const track = n => { try { window.va('event', { name: n }); } catch (e) {} };
+      const hook = (sel, name) => document.querySelectorAll(sel).forEach(el =>
+        el.addEventListener('click', () => track(name)));
+      hook('a[href="assets/PixelFall_Demo.zip"]', 'demo_download');
+      hook('a[href^="https://discord.gg"]', 'discord_join');
+      hook('a[href^="https://miguelbenav.itch.io"]', 'itch_click');
+      hook('a[href^="https://store.steampowered.com"]', 'steam_wishlist');
+      hook('a[href="daw.html"]', 'daw_open');
+      hook('a[href="bestiary.html"]', 'bestiary_open');
+      hook('#letter-close', 'letter_read');
+      hook('#assemble', 'assembly_used');
+      hook('#mend', 'title_mended');
+      const tv = document.getElementById('trailer-vid');
+      if (tv) tv.addEventListener('play', () => track('trailer_play'), { once: true });
+      const sim = document.getElementById('sim');
+      if (sim) sim.addEventListener('pointerdown', () => track('title_destroyed'), { once: true });
     })();
   </script>
 </body>
