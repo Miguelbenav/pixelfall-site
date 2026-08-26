@@ -694,6 +694,79 @@
       color: var(--blue); font-size: 12px; cursor: pointer; text-decoration: underline;
       font-family: inherit; }
 
+
+    /* ── SmartScreen tutorial plan B: the Unblock spell ── */
+    .ssb.ss-stage { height: 280px; }
+    .ssb-zip { position: absolute; left: 21%; top: 22%; width: 56px; height: 70px;
+      background: #e9e2ef; border: 3px solid #000; animation: ssbZipGlow 11s infinite; }
+    .ssb-zipper { width: 8px; height: 100%; margin: 0 auto;
+      background: repeating-linear-gradient(180deg, #555 0 6px, transparent 6px 12px); }
+    .ssb-ziplabel { position: absolute; left: 10%; top: 52%; width: 34%; text-align: center;
+      font-size: 9px; color: var(--dim); }
+    .ssb-rc { position: absolute; left: 16%; top: 12%; font-size: 9px;
+      color: var(--amber-light); opacity: 0; animation: ssbRc 11s infinite;
+      text-shadow: 1px 1px 0 #000; }
+    .ssb-menu { position: absolute; left: 44%; top: 20%; width: 138px; background: #f4f2f8;
+      border: 2px solid #000; opacity: 0; animation: ssbMenu 11s infinite; }
+    .ssb-menu div { padding: 5px 10px; font-size: 10px; color: #2b2b2b; }
+    .ssb-menu .sep { padding: 0; height: 0; border-top: 1px solid #b9b4c4; margin: 3px 6px; }
+    .ssb-menu .prop { font-weight: bold; background: #cfe0f0; }
+    .ssb-dlg { position: absolute; left: 50%; top: 55%; transform: translate(-50%,-50%);
+      width: 80%; background: #ddd8ca; border: 3px solid #000; opacity: 0;
+      animation: ssbDlg 11s infinite; }
+    .ssb-title { background: var(--steam-panel); color: #fff; font-size: 10.5px;
+      padding: 6px 10px; }
+    .ssb-body { padding: 10px 12px; }
+    .ssb-body p { font-size: 10px; color: #2b2b2b; line-height: 1.5; margin-bottom: 8px; }
+    .ssb-body em { color: #5a5648; font-style: normal; }
+    .ssb-chk { display: inline-block; width: 13px; height: 13px; background: #fff;
+      border: 2px solid #000; vertical-align: -2px; text-align: center; line-height: 11px; }
+    .ssb-tick { color: #1a7f2e; font-size: 12px; opacity: 0; animation: ssbTick 11s infinite; }
+    .ssb-okrow { text-align: right; }
+    .ssb-ok { display: inline-block; border: 2px solid #000; padding: 5px 18px;
+      font-size: 10.5px; color: #2b1f0a;
+      background: linear-gradient(180deg, var(--amber-light), var(--amber));
+      animation: ssbOkPulse 11s infinite; }
+    .ssb-click { position: absolute; width: 34px; height: 34px;
+      border: 3px solid var(--amber-light); border-radius: 50%; opacity: 0; z-index: 4; }
+    .ssb-click.b1 { animation: ssbC1 11s infinite; }
+    .ssb-click.b2 { animation: ssbC2 11s infinite; }
+    .ssb-click.b3 { animation: ssbC3 11s infinite; }
+    .ssb-click.b4 { animation: ssbC4 11s infinite; }
+    .ssb-cursor { animation: ssbCursor 11s infinite; }
+    .ssb-done { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 8px;
+      align-items: center; justify-content: center; opacity: 0; animation: ssbDone 11s infinite; }
+    .ssb-done b { color: var(--amber-light); font-size: 30px; text-shadow: 2px 2px 0 #000; }
+    .ssb-done span { color: var(--amber-light); font-size: 14px; text-shadow: 2px 2px 0 #000; }
+    @keyframes ssbZipGlow { 0%,74%,96%,100% { box-shadow: none; }
+      80%,92% { box-shadow: 0 0 0 4px var(--amber), 0 0 24px var(--amber-light); } }
+    @keyframes ssbRc { 0%,14%,25%,100% { opacity: 0; } 16%,22% { opacity: 1; } }
+    @keyframes ssbMenu { 0%,16% { opacity: 0; } 19%,30% { opacity: 1; } 34%,100% { opacity: 0; } }
+    @keyframes ssbDlg { 0%,33% { opacity: 0; } 37%,66% { opacity: 1; } 71%,100% { opacity: 0; } }
+    @keyframes ssbTick { 0%,49% { opacity: 0; } 51%,66% { opacity: 1; } 71%,100% { opacity: 0; } }
+    @keyframes ssbOkPulse { 0%,55%,66%,100% { box-shadow: none; }
+      58%,64% { box-shadow: 0 0 0 3px var(--amber-light); } }
+    @keyframes ssbCursor {
+      0%,6%   { left: 84%; top: 86%; }
+      14%     { left: 26%; top: 36%; }
+      19%     { left: 26%; top: 36%; }
+      28%     { left: 50%; top: 46%; }
+      33%     { left: 50%; top: 46%; }
+      44%     { left: 30%; top: 62%; }
+      50%     { left: 30%; top: 62%; }
+      57%     { left: 76%; top: 73%; }
+      64%     { left: 76%; top: 73%; }
+      78%,100%{ left: 84%; top: 86%; } }
+    @keyframes ssbC1 { 0%,15% { opacity: 0; transform: scale(.3); }
+      18% { opacity: 1; transform: scale(.6); } 23%,100% { opacity: 0; transform: scale(1.15); } }
+    @keyframes ssbC2 { 0%,29% { opacity: 0; transform: scale(.3); }
+      32% { opacity: 1; transform: scale(.6); } 37%,100% { opacity: 0; transform: scale(1.15); } }
+    @keyframes ssbC3 { 0%,46% { opacity: 0; transform: scale(.3); }
+      49% { opacity: 1; transform: scale(.6); } 54%,100% { opacity: 0; transform: scale(1.15); } }
+    @keyframes ssbC4 { 0%,60% { opacity: 0; transform: scale(.3); }
+      63% { opacity: 1; transform: scale(.6); } 68%,100% { opacity: 0; transform: scale(1.15); } }
+    @keyframes ssbDone { 0%,76% { opacity: 0; } 82%,94% { opacity: 1; } 100% { opacity: 0; } }
+
     /* ── the dev letter (first visit) ── */
     #letter-overlay {
       position: fixed;
@@ -920,11 +993,42 @@
         <b>2.</b> A <b>&ldquo;Run anyway&rdquo;</b> button appears &mdash; click it.<br/>
         <b>3.</b> Never again. Windows remembers.
       </div>
-      <p class="ss-alt">No &ldquo;More info&rdquo; on your popup? Rare, but fixable: right-click the
-        downloaded ZIP &rarr; Properties &rarr; tick <b>Unblock</b> &rarr; OK, then extract again.
-        Or skip the whole dance &mdash; the free
+      <p class="ss-alt"><b>No &ldquo;More info&rdquo; on your popup?</b> Rare, but fixable &mdash;
+        the Unblock spell, animated:</p>
+      <div class="ss-stage ssb">
+        <div class="ssb-zip"><div class="ssb-zipper"></div></div>
+        <div class="ssb-ziplabel">PixelFall_Demo.zip</div>
+        <div class="ssb-rc">right-click!</div>
+        <div class="ssb-menu">
+          <div>Open</div>
+          <div>Extract All&hellip;</div>
+          <div class="sep"></div>
+          <div class="prop">Properties</div>
+        </div>
+        <div class="ssb-dlg">
+          <div class="ssb-title">PixelFall_Demo.zip Properties</div>
+          <div class="ssb-body">
+            <p>Type: Compressed (zipped) Folder</p>
+            <p>Security: <em>this file came from another computer&hellip;</em><br/>
+              <span class="ssb-chk"><span class="ssb-tick">&#10004;</span></span> <b>Unblock</b></p>
+            <div class="ssb-okrow"><span class="ssb-ok">OK</span></div>
+          </div>
+        </div>
+        <div class="ssb-click b1" style="left:22%; top:33%;"></div>
+        <div class="ssb-click b2" style="left:46%; top:43%;"></div>
+        <div class="ssb-click b3" style="left:26%; top:59%;"></div>
+        <div class="ssb-click b4" style="left:72%; top:70%;"></div>
+        <svg class="ss-cursor ssb-cursor" viewBox="0 0 24 24"><path d="M4 2 L4 20 L9 15 L12 22 L15 20 L12 14 L19 14 Z" fill="#fff" stroke="#000" stroke-width="1.6"/></svg>
+        <div class="ssb-done"><b>&#10004;</b><span>unblocked. extract again &amp; play.</span></div>
+      </div>
+      <div class="ss-steps" style="font-size:12px;">
+        <b>1.</b> Right-click the downloaded ZIP &rarr; <b>Properties</b>.<br/>
+        <b>2.</b> Bottom of the dialog: tick <b>Unblock</b> &rarr; <b>OK</b>.<br/>
+        <b>3.</b> Extract again &mdash; the folder comes out clean.
+      </div>
+      <p class="ss-alt">Or skip every dance at once &mdash; the free
         <a href="https://itch.io/app" target="_blank" rel="noopener" style="color:var(--amber-light)">itch app</a>
-        installs with zero warnings.</p>
+        installs and updates PIXELFALL with zero warnings, ever.</p>
       <p class="ss-alt" style="border-top:none;padding-top:0;">Why it happens: that&rsquo;s Windows
         being wary of new indie devs, not the game. Every clean launch teaches it to trust us &mdash;
         the warning literally retires itself as more people play.</p>
